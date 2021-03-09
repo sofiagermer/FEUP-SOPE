@@ -1,9 +1,9 @@
 #Project Makefile
 
-
+CC = gcc
 
 main.exe: main.c
-	gcc main.c -o main.exe
+	$(CC) main.c -o main.exe
 
 clean:
-	rm *.o *.exe 
+	rm *.o *.exe *.log
