@@ -16,10 +16,10 @@ verbose vflag;
 bool isDirectory(char* pathname){ //Checks if the path is a directory, returns true if it is else it's a file
 
     struct stat sb;
-
     if (stat(pathname, &sb) == 0 && S_ISDIR(sb.st_mode))
         return true;
     return false;
+
 }
 
 
@@ -74,11 +74,18 @@ void executer(mode_t mode, char* filePath) { //Will actually use chmod function 
     }
     else{
         if(isDirectory(filePath)){ //Verifica se é um directorio, se for muda as permissoes e chama a funçao recursivamente, se for um ficheiro muda as permissoes
+            //chmod(filePath,mode);
             if ((dir = opendir (filePath)) != NULL) {
-                while ((ent = readdir (dir)) != NULL) { //Está me a dar um erro estupido, aparecem bue pontos ao listar os ficheiro, nao percebo
-                
-                    printf ("%s\n", ent->d_name); //Falta juntar as 2 strings para formar um novo path e chamar a funçao com o novo path
-                    printf("Call recursion\n");
+                while ((ent = readdir (dir)) != NULL) { 
+                    if(strcmp(".",ent->d_name)!=0&&strcmp("..",ent->d_name)!=0){
+                        printf ("%s\n", ent->d_name); 
+                        char* newPath=malloc(strlen(filePath)+strlen(ent->d_name)+1);
+                        strcat(newPath,filePath);
+                        strcat(newPath,"/");
+                        strcat(newPath,ent->d_name);
+                        executer(mode,newPath); //Calls recursively until all permissions are changed
+                    }
+                    
                 }
                 closedir (dir);
             } 
@@ -88,6 +95,7 @@ void executer(mode_t mode, char* filePath) { //Will actually use chmod function 
             }
         }
         else{
+            //chmod(filePath,mode);
             printf("Changed permissions");
         }
     }
@@ -95,7 +103,7 @@ void executer(mode_t mode, char* filePath) { //Will actually use chmod function 
 }
 
 void parser(char* arguments[], int n) {
-    mode_t mode;
+    mode_t mode=777; //random initialization because I was getting warnings
     int flags; //To save the result of the mode detection module (the flags to be used in chmod function)
     char* filePath="testDir";
     if (n == 3 || n == 4) { 

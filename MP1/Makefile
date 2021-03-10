@@ -3,7 +3,7 @@
 CC = gcc
 
 main.exe: main.c
-	$(CC) main.c -o main.exe
+	$(CC) -Wall main.c -o main.exe
 
 clean:
 	rm *.o *.exe *.log
