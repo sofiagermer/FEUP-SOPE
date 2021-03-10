@@ -22,6 +22,97 @@ bool isDirectory(char* pathname){ //Checks if the path is a directory, returns t
 
 }
 
+int getChmod(const char *path){
+    struct stat mode;
+
+    if (stat(path, &mode) == -1) {
+        return -1;
+    }
+
+    int m = mode.st_mode;
+    m &= 0xfff;
+    return m;
+}
+
+//R -> 4 W -> 2 E -> 1
+
+mode_t findMode(char* arguments[], char* filePath){
+    int mode = getChmod(filePath);
+    if(*arguments[1] == '=') return mode;
+    switch(*arguments[0]){
+        case 'u': {
+            switch(*arguments[1]){
+                case '-':{
+                    if(*arguments[2] == 'r') {mode -= 400;}
+                    if(*arguments[3] == 'w') {mode -= 200;}
+                    if(*arguments[4] == 'x') {mode -= 100;}
+                    break;
+                }
+                case '+': {
+                    if(*arguments[2] == 'r') {mode += 400;}
+                    if(*arguments[3] == 'w') {mode += 200;}
+                    if(*arguments[4] == 'x') {mode += 100;}
+                    break;
+                }
+            }
+            break;
+        }
+        case 'g': {
+            switch(*arguments[1]){
+                case '-':{
+                    if(*arguments[2] == 'r') {mode -= 40;}
+                    if(*arguments[3] == 'w') {mode -= 20;}
+                    if(*arguments[4] == 'x') {mode -= 10;}
+
+                    break;
+                }
+                case '+': {
+                    if(*arguments[2] == 'r') {mode += 40;}
+                    if(*arguments[3] == 'w') {mode += 20;}
+                    if(*arguments[4] == 'x') {mode += 10;}
+                    break;
+                }
+            }
+            break;
+        }
+        case 'o':{
+            switch(*arguments[1]){
+                case '-':{
+                    if(*arguments[2] == 'r') {mode -= 4;}
+                    if(*arguments[3] == 'w') {mode -= 2;}
+                    if(*arguments[4] == 'x') {mode -= 1;}
+                    break;
+                }
+                case '+': {
+                    if(*arguments[2] == 'r') {mode += 4;}
+                    if(*arguments[3] == 'w') {mode += 2;}
+                    if(*arguments[4] == 'x') {mode += 1;}
+                    break;
+                }
+            }
+            break;
+        }
+        case 'a':{
+            switch(*arguments[1]){
+                case '-':{
+                    if(*arguments[2] == 'r') {mode -= 444;}
+                    if(*arguments[3] == 'w') {mode -= 222;}
+                    if(*arguments[4] == 'x') {mode -= 111;}
+                    break;
+                }
+                case '+': {
+                    if(*arguments[2] == 'r') {mode += 444;}
+                    if(*arguments[3] == 'w') {mode += 222;}
+                    if(*arguments[4] == 'x') {mode += 111;}
+                    break;
+                }
+            }
+        }
+        default:
+            break;
+    }
+}
+
 
 void findOptions(char* arguments[]) { //Get the options in a string, they can be anywhere in the line
     char *options;
@@ -115,14 +206,16 @@ void parser(char* arguments[], int n) {
         exit(1);
     }
     if (n == 4) { //With Options
-        findOptions(arguments);
+        //findOptions(arguments);
     }
     executer(mode,filePath);
 }
 
 int main(int argc, char* argv[], char* envp[]) {
 
-    parser(argv, argc);
-
+    //parser(argv, argc);
+    int mode =getChmod("/home/sofia/Desktop/SOPE/MP1/MP1/testfile.txt");
+    printf("%d", mode);
+    printf("\n");
     return 0;
 }
