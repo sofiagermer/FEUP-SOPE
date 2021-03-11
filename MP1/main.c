@@ -7,7 +7,10 @@
 #include <string.h>
 #include <stdbool.h>
 #include <dirent.h>
-
+#include <ctype.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/stat.h>
 extern int errno;
 typedef enum {C, V, NONE} verbose;
 bool recursive;
@@ -21,7 +24,18 @@ bool isDirectory(char* pathname){ //Checks if the path is a directory, returns t
     return false;
 
 }
+bool CheckIfFile(const char *path)
+{
+    struct stat stats;
 
+    stat(path, &stats);
+
+    // Check for file existence
+    if (stats.st_mode & F_OK)
+        return true;
+
+    return false;
+}
 int getChmod(const char *path){
     struct stat mode;
 
@@ -35,41 +49,68 @@ int getChmod(const char *path){
 }
 
 //R -> 4 W -> 2 E -> 1
-
-mode_t findMode(char* arguments[], char* filePath){
+bool CheckOctalMode(char i, char j, char k, char s){
+    if(i != '0') return false;
+    if(j == '0' || j == '1' || j == '2' || j == '3' || j == '4' || j == '5' || j == '6' || j == '7'){
+        if(k == '0' || k == '1' || k == '2' || k == '3' || k == '4' || k == '5' || k == '6' || k == '7'){
+            if(s == '0' || s == '1' || s == '2' || s == '3' || s == '4' || s == '5' || s == '6' || s == '7'){
+                return true;;
+            }
+        }
+    }
+    return false;
+}
+/*
+int addPermisions(char i, char j, char k, int n){
+    if
+}*/
+/*
+int findMode(char* arguments[], char* filePath){
     int mode = getChmod(filePath);
     if(*arguments[1] == '=') return mode;
+    size_t n = sizeof(arguments)/sizeof(arguments[0]);
+
     switch(*arguments[0]){
         case 'u': {
             switch(*arguments[1]){
                 case '-':{
-                    if(*arguments[2] == 'r') {mode -= 400;}
-                    if(*arguments[3] == 'w') {mode -= 200;}
-                    if(*arguments[4] == 'x') {mode -= 100;}
-                    break;
+                    for(int i = 2; i < n; i++){
+                        if(i == 2 && *arguments[2] == 'r') {mode -= 400;}
+                        if(i == 3 && *arguments[3] == 'w') {mode -= 200;}
+                        if(i == 4 && *arguments[4] == 'x') {mode -= 100;}
+                        else return -1;
+                    }
+                     break;
                 }
                 case '+': {
-                    if(*arguments[2] == 'r') {mode += 400;}
-                    if(*arguments[3] == 'w') {mode += 200;}
-                    if(*arguments[4] == 'x') {mode += 100;}
-                    break;
+                   for(int i = 2; i < n; i++){
+                        if(i == 2 && *arguments[2] == 'r') {mode += 400;}
+                        else if(i == 3 && *arguments[3] == 'w') {mode += 200;}
+                        else if(i == 4 && *arguments[4] == 'x') {mode += 100;}
+                        else return -1;
+                    }
                 }
+                break;
             }
             break;
         }
         case 'g': {
             switch(*arguments[1]){
                 case '-':{
-                    if(*arguments[2] == 'r') {mode -= 40;}
-                    if(*arguments[3] == 'w') {mode -= 20;}
-                    if(*arguments[4] == 'x') {mode -= 10;}
-
-                    break;
+                    for(int i = 2; i < n; i++){
+                        if(i == 2 && *arguments[2] == 'r') {mode -= 40;}
+                        if(i == 3 && *arguments[3] == 'w') {mode -= 20;}
+                        if(i == 4 && *arguments[4] == 'x') {mode -= 10;}
+                        else return -1;
+                    }
                 }
                 case '+': {
-                    if(*arguments[2] == 'r') {mode += 40;}
-                    if(*arguments[3] == 'w') {mode += 20;}
-                    if(*arguments[4] == 'x') {mode += 10;}
+                    for(int i = 2; i < n; i++){
+                        if(i == 2 && *arguments[2] == 'r') {mode += 40;}
+                        else if(i == 3 && *arguments[3] == 'w') {mode += 20;}
+                        else if(i == 4 && *arguments[4] == 'x') {mode += 10;}
+                        else return -1;
+                    }
                     break;
                 }
             }
@@ -78,16 +119,20 @@ mode_t findMode(char* arguments[], char* filePath){
         case 'o':{
             switch(*arguments[1]){
                 case '-':{
-                    if(*arguments[2] == 'r') {mode -= 4;}
-                    if(*arguments[3] == 'w') {mode -= 2;}
-                    if(*arguments[4] == 'x') {mode -= 1;}
-                    break;
+                    for(int i = 2; i < n; i++){
+                        if(i == 2 && *arguments[2] == 'r') {mode -= 40;}
+                        if(i == 3 && *arguments[3] == 'w') {mode -= 20;}
+                        if(i == 4 && *arguments[4] == 'x') {mode -= 10;}
+                        else return -1;
+                    }
                 }
                 case '+': {
-                    if(*arguments[2] == 'r') {mode += 4;}
-                    if(*arguments[3] == 'w') {mode += 2;}
-                    if(*arguments[4] == 'x') {mode += 1;}
-                    break;
+                    for(int i = 2; i < n; i++){
+                        if(i == 2 && *arguments[2] == 'r') {mode += 40;}
+                        else if(i == 3 && *arguments[3] == 'w') {mode += 20;}
+                        else if(i == 4 &&*arguments[4] == 'x') {mode += 10;}
+                        else return -1;
+                    }
                 }
             }
             break;
@@ -95,15 +140,21 @@ mode_t findMode(char* arguments[], char* filePath){
         case 'a':{
             switch(*arguments[1]){
                 case '-':{
-                    if(*arguments[2] == 'r') {mode -= 444;}
-                    if(*arguments[3] == 'w') {mode -= 222;}
-                    if(*arguments[4] == 'x') {mode -= 111;}
+                    for(int i = 2; i < n; i++){
+                        if(i == 2 && *arguments[2] == 'r') {mode -= 444;}
+                        if(i == 3 && *arguments[3] == 'w') {mode -= 222;}
+                        if(i == 4 && *arguments[4] == 'x') {mode -= 111;}
+                        else return -1;
+                    }
                     break;
                 }
                 case '+': {
-                    if(*arguments[2] == 'r') {mode += 444;}
-                    if(*arguments[3] == 'w') {mode += 222;}
-                    if(*arguments[4] == 'x') {mode += 111;}
+                    for(int i = 2; i < n; i++){
+                        if(i == 2 && *arguments[2] == 'r') {mode -= 444;}
+                        if(i == 3 && *arguments[3] == 'w') {mode -= 222;}
+                        if(i == 4 && *arguments[4] == 'x') {mode -= 111;}
+                        else return -1;
+                    }
                     break;
                 }
             }
@@ -111,9 +162,10 @@ mode_t findMode(char* arguments[], char* filePath){
         default:
             break;
     }
-}
+    return mode;
+}*/
 
-
+/*
 void findOptions(char* arguments[]) { //Get the options in a string, they can be anywhere in the line
     char *options;
     for (unsigned int i = 0; i < 4; i++) {
@@ -155,6 +207,7 @@ void findOptions(char* arguments[]) { //Get the options in a string, they can be
     if (recursive) //Do recursion with forks
         printf("Not implemented\n");
 }
+*/
 
 void executer(mode_t mode, char* filePath) { //Will actually use chmod function (recursively if necessary)
     DIR *dir;
@@ -197,25 +250,47 @@ void parser(char* arguments[], int n) {
     mode_t mode=777; //random initialization because I was getting warnings
     int flags; //To save the result of the mode detection module (the flags to be used in chmod function)
     char* filePath="testDir";
-    if (n == 3 || n == 4) { 
-        //Function(s) that detect and assign the mode to 'flags' variable 
-        //May also retrieve the filename and detect if the order is correct (idk?)
+    for(int i = 1; i < 4 ; i++){
+        //OCTAL MODE
+        if(isdigit(*arguments[i])) 
+         {
+            if(CheckOctalMode(arguments[i][0], arguments[i][1], arguments[i][2], arguments[i][3])){
+                mode = (int) *arguments[i];
+            }
+            else{
+                fprintf(stderr , "Octal Mode isn't correct: %s\n", strerror(errno));
+                exit(1);
+            }
+        }
+        //MODE
+        else if(isalpha(*arguments[i])){
+            if ((access(arguments[i], 0)) != -1) continue;
+           /* else {
+                mode = findMode(arguments, filePath);
+                if(mode != -1){
+                    //executer(mode,filePath);
+                    printf("would work \n");
+                }
+                else{
+                    fprintf(stderr , "Mode isn't correct: %s\n", strerror(errno));
+                    exit(1);
+                }
+            }*/
+        }
+        else{
+            if ((access(arguments[i], 0)) != -1) continue;
+
+            //OPTIONS
+            else if(arguments[i][0] == '-') {
+                continue;
+            }
+            else exit(1);
+        }
     }
-    else { //Not enough arguments
-        fprintf(stderr, "Few arguments: %s\n", strerror(errno));
-        exit(1);
-    }
-    if (n == 4) { //With Options
-        //findOptions(arguments);
-    }
-    executer(mode,filePath);
+    //executer(mode,filePath);
 }
 
 int main(int argc, char* argv[], char* envp[]) {
-
-    //parser(argv, argc);
-    int mode =getChmod("/home/sofia/Desktop/SOPE/MP1/MP1/testfile.txt");
-    printf("%d", mode);
-    printf("\n");
+    parser(argv, argc);
     return 0;
 }
