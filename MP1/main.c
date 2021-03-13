@@ -7,90 +7,47 @@
 #include <string.h>
 #include <stdbool.h>
 #include <dirent.h>
-#include <ctype.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/stat.h>
-#include <ctype.h>
 #include <math.h>
 
-#define BIT(n) 1 <<(n)
 
-typedef enum {C, V, NONE} verbose;
+typedef enum {C, V, NONE} Verbose;
 
 extern int errno;
 
 bool recursive;
-verbose vflag;
-char* filePath;
+Verbose vflag = NONE;
 
-bool isDirectory(char* pathname) { //Checks if the path is a directory, returns true if it is else it's a file
+//BIGGER FUNCS
+void parse(char* arguments[], int nArgs, char** filePath, char** mode); //Parses arguments
+void executer(const char* mode, const char* filePath); //Recursive funtion
+
+//AUXILIARY FUNCS RELATED TO MODE
+bool checkOctalMode(const char* octalMode); //Checks if octal mode's structure is valid
+mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode); //Returns the mode to be applied (in case of MODE option)
+mode_t getModeNum(const char* mode, const char* filePath, const mode_t oldMode); //Decides between octal and MODE and returns numerical code for mode
+mode_t getFilePermissions(const char *path); //Returns the permissions of the file being treated
+
+//AUXILIARY FUNCS RELATED TO OTHERS
+mode_t convert(int octal); //To convert octal do decimal
+void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode); //Verbose messages
+void processOption(const char optFlag); //Processes an option
+void checkFile(const char* filePath); //Checks if a file exists
+bool isDirectory(const char* pathname); //Checks if file in pathname is a directory
+bool checkChanges(const mode_t oldMode, const mode_t newMode); //Checks if there were changes
+
+
+bool isDirectory(const char* pathname) { //Checks if the path is a directory, returns true if it is else it's a file
 
     struct stat sb;
     if (stat(pathname, &sb) == 0 && S_ISDIR(sb.st_mode))
         return true;
-    return false;
-
+    else
+        return false;
 }
 
-bool checkPath(const char *path) {
-    printf("Path:%s\n", path);
-    struct stat stats;
-
-    stat(path, &stats);
-
-    // Check for file existence
-    if (stats.st_mode & F_OK) {
-
-        printf("YAY\n");
-        return true;
-    }
-    //else if (S_ISDIR(stats.st_mode))  return true;
-    return false;
-}
-
-int convert1(int oct) {
-    int dec = 0, i = 0;
-    int bin = 0;
-
-    // converting octal to decimal
-    while (oct != 0) {
-        dec += (oct % 10) * pow(8, i);
-        ++i;
-        oct /= 10;
-    }
-    i = 1;
-
-   // converting decimal to binary
-    while (dec != 0) {
-        bin += (dec % 2) * i;
-        dec /= 2;
-        i *= 10;
-    }
-    return bin;
-}
-
-int convert(int bin) {
-    int oct = 0, dec = 0, i = 0;
-
-    // converting binary to decimal
-    while (bin != 0) {
-        dec += (bin % 10) * pow(2, i);
-        ++i;
-        bin /= 10;
-    }
-    i = 1;
-
-    // converting to decimal to octal
-    while (dec != 0) {
-        oct += (dec % 8) * i;
-        dec /= 8;
-        i *= 10;
-    }
-    return oct;
-}
-
-int getChmod(const char *path) {
+mode_t getFilePermissions(const char *path) {
     struct stat mode;
 
     if (stat(path, &mode) == -1) {
@@ -98,308 +55,320 @@ int getChmod(const char *path) {
     }
 
     int m = mode.st_mode;
-    m &= 0xfff;
+    m &= 0x00fff;
     return m;
 }
 
-//R -> 4 W -> 2 E -> 1
-bool CheckOctalMode(char i, char j, char k, char s) {
-    if(i != '0') return false;
-    if(j == '0' || j == '1' || j == '2' || j == '3' || j == '4' || j == '5' || j == '6' || j == '7'){
-        if(k == '0' || k == '1' || k == '2' || k == '3' || k == '4' || k == '5' || k == '6' || k == '7'){
-            if(s == '0' || s == '1' || s == '2' || s == '3' || s == '4' || s == '5' || s == '6' || s == '7'){
+bool checkOctalMode(const char* octalMode) {
+    if (strlen(octalMode) > 4) return false;
+    if (octalMode[0] != '0') return false;
+    if (octalMode[1] == '0' || octalMode[1] == '1' || octalMode[1] == '2' || octalMode[1] == '3' || octalMode[1] == '4' || octalMode[1] == '5' || octalMode[1] == '6' || octalMode[1] == '7'){
+        if (octalMode[2] == '0' || octalMode[2] == '1' || octalMode[2] == '2' || octalMode[2] == '3' || octalMode[2] == '4' || octalMode[2] == '5' || octalMode[2] == '6' || octalMode[2] == '7'){
+            if (octalMode[3] == '0' || octalMode[3] == '1' || octalMode[3] == '2' || octalMode[3] == '3' || octalMode[3] == '4' || octalMode[3] == '5' || octalMode[3] == '6' || octalMode[3] == '7'){
                 return true;;
             }
         }
     }
     return false;
 }
-/*
-int addPermisions(char i, char j, char k, int n){
-    if
-}*/
 
-int findMode(char* modes, char* filePath){
+mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
 
-    int mode = getChmod(filePath);
-    int n = strlen(modes);
+    mode_t newMode = 0;
+    int length = strlen(mode);
+    char target = mode[0];
+    char operation = mode[1];
 
-    for(int i = 2; i < n; i++){
-        if(modes[i] == 'r') modeAfter += 4;
-        if(modes[i] == 'w') modeAfter += 2;
-        if(modes[i] == 'x') modeAfter += 1;
-        else return -1;
-    }
-
-    switch(*arguments[0]){
+    switch (target) {
         case 'u': {
-            switch(*arguments[1]){
-                case '-':{
-                    for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode &= 011111111;}
-                        if(i == 3 && *arguments[3] == 'w') {mode &= 101111111;}
-                        if(i == 4 && *arguments[4] == 'x') {mode &= 110111111;}
-                        else return -1;
+            for (unsigned int i = 2; i < length; i++) {
+                switch (mode[i]) {
+                    case 'r': {
+                        newMode |= S_IRUSR;
+                        break;
                     }
-                     break;
-                }
-                case '+': {
-                   for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode |= BIT(8);}
-                        if(i == 3 && *arguments[3] == 'w') {mode |= BIT(7);}
-                        if(i == 4 && *arguments[4] == 'x') {mode |= BIT(6);}
-                        else return -1;
+                    case 'w': {
+                        newMode |= S_IWUSR;
+                        break;
+                    }
+                    case 'x': {
+                        newMode |= S_IXUSR;
+                        break;
                     }
                 }
-                case '=': {
-                    for (int i = 2; i < n; i++) {
-                        
-                    }
-                }
-                break;
             }
             break;
         }
         case 'g': {
-            switch(*arguments[1]){
-                case '-':{
-                    for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode &= 111111111;}
-                        if(i == 3 && *arguments[3] == 'w') {mode &= 101111111;}
-                        if(i == 4 && *arguments[4] == 'x') {mode &= 110111111;}
-                        else return -1;
+            for (unsigned int i = 2; i < length; i++) {
+                switch (mode[i]) {
+                    case 'r': {
+                        newMode |= S_IRGRP;
+                        break;
                     }
-                }
-                case '+': {
-                    for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode |= BIT(5);}
-                        if(i == 3 && *arguments[3] == 'w') {mode |= BIT(4);}
-                        if(i == 4 && *arguments[4] == 'x') {mode |= BIT(3);}
-                        else return -1;
+                    case 'w': {
+                        newMode |= S_IWGRP;
+                        break;
                     }
-                    break;
+                    case 'x': {
+                        newMode |= S_IXGRP;
+                        break;
+                    }
                 }
             }
             break;
         }
-        case 'o':{
-            switch(*arguments[1]){
-                case '-':{
-                    for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode -= 40;}
-                        if(i == 3 && *arguments[3] == 'w') {mode -= 20;}
-                        if(i == 4 && *arguments[4] == 'x') {mode -= 10;}
-                        else return -1;
+        case 'o': {
+            for (unsigned int i = 2; i < length; i++) {
+                switch (mode[i]) {
+                    case 'r': {
+                        newMode |= S_IROTH;
+                        break;
+                    }
+                    case 'w': {
+                        newMode |= S_IWOTH;
+                        break;
+                    }
+                    case 'x': {
+                        newMode |= S_IXOTH;
+                        break;
                     }
                 }
-                case '+': {
-                   for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode |= BIT(5);}
-                        if(i == 3 && *arguments[3] == 'w') {mode |= BIT(4);}
-                        if(i == 4 && *arguments[4] == 'x') {mode |= BIT(3);}
-                        else return -1;
-                    }
             }
             break;
         }
-        case 'a':{
-            switch(*arguments[1]){
-                case '-':{
-                    for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode -= 444;}
-                        if(i == 3 && *arguments[3] == 'w') {mode -= 222;}
-                        if(i == 4 && *arguments[4] == 'x') {mode -= 111;}
-                        else return -1;
+        case 'a': {
+            for (unsigned int i = 2; i < length; i++) {
+                switch (mode[i]) {
+                    case 'r': {
+                        newMode |= S_IRUSR | S_IRGRP | S_IROTH;
+                        break;
                     }
-                    break;
-                }
-                case '+': {
-                    for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode -= 444;}
-                        if(i == 3 && *arguments[3] == 'w') {mode -= 222;}
-                        if(i == 4 && *arguments[4] == 'x') {mode -= 111;}
-                        else return -1;
+                    case 'w': {
+                        newMode |= S_IWUSR | S_IWGRP | S_IWOTH;
+                        break;
                     }
-                    break;
+                    case 'x': {
+                        newMode |= S_IXUSR | S_IXGRP | S_IXOTH;
+                        break;
+                    }
                 }
             }
-        }
-        default:
             break;
-    }
-    return mode;
-}
-
-void diagnosticPrint(char* filePath,mode_t oldMode,mode_t newMode){ //falta converter estes modos todos para a notação correcta
-    char* oldPermissions="",*newPermissions=""; //inicializei so para calar warnings
-    
-    printf("mode of '%s' changed from %x (%s) to %x (%s)",filePath,oldMode,oldPermissions,newMode,newPermissions);
-
-}
-
-void findOptions(char* options) { //Get the options in a string, they can be anywhere in the line
-
-    for (char* optFlag = options; *optFlag != NULL; optFlag++) {
-        switch (*optFlag) {
-            case 'R': {
-                recursive = true;
-                break;
-            }
-            case 'c': {
-                if (vflag == V) break; //If v is present, c is irrelevant
-                vflag = C;
-                break;
-            }
-            case 'v': {
-                vflag = V;
-                break;
-            }
-        } 
-    }
-}
-
-
-void executer(mode_t mode, char* filePath) { //Will actually use chmod function (recursively if necessary)
-    DIR *dir;
-    struct dirent *ent;
-    if(!recursive){
-        printf("No Recursion");
-        return;
-    }
-    else{
-        if(isDirectory(filePath)){ //Verifica se é um directorio, se for muda as permissoes e chama a funçao recursivamente, se for um ficheiro muda as permissoes
-
-            //Esta parte ainda nao esta terminada mas era mil vezes mais fácil pensar nisto se o programa já tivesse a funcionar todo ok
-            /*struct stat info;
-            stat(filePath,&info);
-            if(chmod(filePath,mode)!=0){
-                printf("chmod error");
-            }
-            else if(vflag==C&&(info.st_mode!=mode)){
-                diagnosticPrint(filePath,info.st_mode,mode);
-            }
-            else if(vflag==V){
-                diagnosticPrint(filePath,info.st_mode,mode);
-            }*/
-
-            if ((dir = opendir (filePath)) != NULL) {
-                while ((ent = readdir (dir)) != NULL) { 
-                    if(strcmp(".",ent->d_name)!=0&&strcmp("..",ent->d_name)!=0){
-                        printf ("%s\n", ent->d_name); 
-                        char* newPath=malloc(strlen(filePath)+strlen(ent->d_name)+1);
-                        strcat(newPath,filePath);
-                        strcat(newPath,"/");
-                        strcat(newPath,ent->d_name);
-                        executer(mode,newPath); //Calls recursively until all permissions are changed
-                    }
-                    
-                }
-                closedir (dir);
-            } 
-            else {
-                printf("Dir did not open");
-                return;
-            }
         }
-        else{
-            //Esta parte ainda nao esta terminada mas era mil vezes mais fácil pensar nisto se o programa já tivesse a funcionar todo ok
-            /*struct stat info;
-            stat(filePath,&info);
-            if(chmod(filePath,mode)!=0){
-                printf("chmod error");
-            }
-            else if(vflag==C&&(info.st_mode!=mode)){
-                diagnosticPrint(filePath,info.st_mode,mode);
-            }
-            else if(vflag==V){
-                diagnosticPrint(filePath,info.st_mode,mode);
-            }*/
-        }
-    }
-
-}
-
-void parser(char* arguments[], int n) {
-    mode_t mode=777; //random initialization because I was getting warnings
-    //int flags; //To save the result of the mode detection module (the flags to be used in chmod function)
-    for(int i = 1; i < n ; i++){
-        printf("%d\n", i);
-        //OCTAL MODE
-        if(isdigit(*arguments[i])) 
-         {
-            if(CheckOctalMode(arguments[i][0], arguments[i][1], arguments[i][2], arguments[i][3])){
-                mode = atoi(arguments[i]);
-                printf("Mode:%d  Mode in arguments:%s\n", mode, arguments[i]);
-            }
-            else{
-                fprintf(stderr , "Octal Mode isn't correct: %s\n", strerror(errno));
-                exit(1);
-            }
-        }
-        //FILES
-        else if (checkPath(arguments[i])) {
-            filePath = arguments[i];
-            printf("Filepath:%s\n", filePath);
-        }
-        //MODE or FILE PATH
-        else if(isalpha(*arguments[i])){
-            if ((access(arguments[i], F_OK)) != -1) {
-                filePath = arguments[i];
-                printf("Filepath:%s\n", filePath);
-                continue;
-            }
-           /* else {
-                mode = findMode(arguments, filePath);
-                if(mode != -1){
-                    //executer(mode,filePath);
-                    printf("would work \n");
-                }
-                else{
-                    fprintf(stderr , "Mode isn't correct: %s\n", strerror(errno));
-                    exit(1);
-                }
-            }*/
-        }
-        //FULL PATHS
-        else if (arguments[i][0] == '/') {
-            if ((access(arguments[i], 0)) != -1) {
-                filePath = arguments[i];
-                printf("Filepath:%s\n", filePath);
-                continue;
-            }
-        }
-        //OPTIONS
-        else if(arguments[i][0] == '-') {
-            
-            findOptions(arguments[i]);
-            
-            //OPTIONS TESTING
-            /*
-            if (vflag == V) printf("V ok\n");
-            else if (vflag == C) printf("C ok\n");
-            else if (vflag == NONE) printf("NONE ok\n");
-            else printf("Merdou\n");
-            if (recursive) printf("Recursive ok\n");
-            else printf("Non recursive\n");*/
-
-        }
-        else {
-            printf("WTF is this argument\n");
+        default: {
+            fprintf(stderr, "Invalid target identifier:%c\n", target);
             exit(1);
         }
     }
-    //executer(mode,filePath);
+
+    switch (operation) {
+        case '+': {
+            return oldMode | newMode;
+        }
+        case '-': {
+            return oldMode & ~newMode;
+        }
+        case '=': {
+            return newMode;
+        }
+        default: {
+            fprintf(stderr, "Invalid type of mode operation:%c\n", operation);
+            exit(1);
+        }
+    } 
+}
+
+void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode) { 
+    char* oldPermissions = "", *newPermissions = ""; 
+    
+    printf("mode of '%s' changed from %o (%s) to %o (%s)\n",filePath, oldMode, oldPermissions, newMode, newPermissions);
+}
+
+void checkFile(const char* filePath) {
+    if (access(filePath, F_OK) == -1) {
+        fprintf(stderr, "File name wrong: %s", strerror(errno));
+        exit(1);
+    }
+}
+
+void processOption(const char optFlag) {
+    switch (optFlag) {
+        case 'R': {
+            recursive = true;
+            break;
+        }
+        case 'c': {
+            if (vflag == V) break; //If v is present, c is irrelevant
+            vflag = C;
+            break;
+        }
+        case 'v': {
+            vflag = V;
+            break;
+        }
+    } 
+}
+
+mode_t getModeNum(const char* mode, const char* filePath, const mode_t oldMode) {
+    mode_t modeNum;
+    int octal;
+    if ((octal = atoi(mode)) != 0) {
+        if (!checkOctalMode(mode)) {
+            fprintf(stderr, "Invalid format for octal mode:%s\n", mode);
+            exit(1);
+        }
+        modeNum = convert(octal);
+    }
+    else 
+        modeNum = findMode(mode, filePath, oldMode);
+    return modeNum;
+}
+
+bool checkChanges(const mode_t oldMode, const mode_t newMode) {
+    if (oldMode == newMode) return false;
+    else return true;
+}
+
+mode_t convert(int octal) {
+    int decimal = 0, i = 0;
+
+    while(octal != 0) {
+        decimal += (octal%10) * pow(8,i);
+        ++i;
+        octal/=10;
+    }
+
+    return decimal;
+}
+
+void parse(char* arguments[], int nArgs, char** filePath, char** mode) { 
+
+    bool isMode = true;
+ 
+    //PARSE
+    for (unsigned int i = 1; i < nArgs; i++) {
+        if (arguments[i][0] == '-') {
+            for (unsigned int j = 0; j < strlen(arguments[i]); j++)
+                processOption(arguments[i][j]);
+        }
+        else if (isMode) {
+            *mode = arguments[i];
+            isMode = false;
+        }
+        else *filePath = arguments[i];      
+    }    
+}
+
+void executer(const char* mode, const char* filePath) { //Will actually use chmod function (recursively if necessary)
+
+    mode_t oldMode;
+    mode_t newMode;
+    DIR *dir;
+    struct dirent *ent;
+
+    checkFile(filePath);
+    oldMode = getFilePermissions(filePath);
+    newMode = getModeNum(mode, filePath, oldMode);
+
+    //TESTING
+    printf("Mode numerical:%o\n", newMode);
+
+    if (chmod(filePath, newMode) != 0) {
+        fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
+        exit(1);
+    }
+    if ((vflag == C && checkChanges(oldMode, newMode)) || vflag == V) 
+        diagnosticPrint(filePath, oldMode, newMode);
+
+    if (recursive && isDirectory(filePath)) { //Verifica se é um directorio
+        /*
+        
+        struct stat info;
+        stat(filePath,&info);
+        else if(vflag==C&&(info.st_mode!=mode)){
+            diagnosticPrint(filePath,info.st_mode,mode);
+        }
+        else if(vflag==V){
+            diagnosticPrint(filePath,info.st_mode,mode);
+        }
+
+        if ((dir = opendir (filePath)) != NULL) {
+            while ((ent = readdir (dir)) != NULL) { 
+                if(strcmp(".",ent->d_name)!=0&&strcmp("..",ent->d_name)!=0){
+                    printf ("%s\n", ent->d_name); 
+                    char* newPath=malloc(strlen(filePath)+strlen(ent->d_name)+1);
+                    strcat(newPath,filePath);
+                    strcat(newPath,"/");
+                    strcat(newPath,ent->d_name);
+                    executer(mode,newPath); //Calls recursively until all permissions are changed
+                }
+                
+            }
+            closedir (dir);
+        } 
+        else {
+            printf("Dir did not open");
+            return;
+        }
+        }
+        else{
+            //Esta parte ainda nao esta terminada mas era mil vezes mais fácil pensar nisto se o programa já tivesse a funcionar todo ok
+            struct stat info;
+            stat(filePath,&info);
+            if(chmod(filePath,mode)!=0){
+                printf("chmod error");
+            }
+            else if(vflag==C&&(info.st_mode!=mode)){
+                diagnosticPrint(filePath,info.st_mode,mode);
+            }
+            else if(vflag==V){
+                diagnosticPrint(filePath,info.st_mode,mode);
+            }
+        }*/
+    }
+    
+
 }
 
 int main(int argc, char* argv[], char* envp[]) {
-    //chmod("textfile.txt", 0777);
-    /*printf("estou aqui \n");
-    int oct = getChmod("textfile.txt");
-    int bin = convert1(oct);
-    printf("after \n");*/
-    int s = 111111111;
-    s &= BIT(9);
-    printf("%d", s);
-    parser(argv, argc);
+    //TESTING
+    /*
+    //mode_t oldMode = getChmod("textfile.txt");
+    mode_t oldMode = S_IROTH | S_IWOTH;
+    mode_t newMode = S_IROTH;
+    printf("oldmode:%o\n", oldMode);
+    printf("newmode:%o\n", newMode);
+    mode_t mode = oldMode & ~newMode;
+    int mode2 = (int) mode;
+    printf("mode:%o\n", mode);
+    printf("mode2:%o\n", mode2);
+    chmod("textfile.txt", mode2);
+    int i = 777;
+    printf("%o\n", convertOctalToDecimal(i));
+    mode_t e = convertOctalToDecimal(i);
+    chmod("textfile.txt", i);
+    */
+
+    
+    //Variables
+    char* filePath = "";
+    char* mode = "";
+    
+    //Parse
+    parse(argv, argc, &filePath, &mode);
+
+    //TESTING
+    if (vflag == V) printf("V: ok\n");
+    else if (vflag == C) printf("C: ok\n");
+    else if (vflag == NONE) printf("NONE: ok\n");
+    else printf("Merdou\n");
+    if (recursive) printf("Recursive: ok\n");
+    else printf("Non recursive\n");
+    printf("Mode:%s\n", mode);
+    printf("File name:%s\n", filePath);
+
+    executer(mode, filePath);
+
     return 0;
 }
