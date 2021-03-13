@@ -165,7 +165,13 @@ int findMode(char* arguments[], char* filePath){
     return mode;
 }*/
 
-/*
+void diagnosticPrint(char* filePath,mode_t oldMode,mode_t newMode){ //falta converter estes modos todos para a notação correcta
+    char* oldPermissions="",*newPermissions=""; //inicializei so para calar warnings
+    
+    printf("mode of '%s' changed from %x (%s) to %x (%s)",filePath,oldMode,oldPermissions,newMode,newPermissions);
+
+}
+
 void findOptions(char* arguments[]) { //Get the options in a string, they can be anywhere in the line
     char *options;
     for (unsigned int i = 0; i < 4; i++) {
@@ -207,7 +213,7 @@ void findOptions(char* arguments[]) { //Get the options in a string, they can be
     if (recursive) //Do recursion with forks
         printf("Not implemented\n");
 }
-*/
+
 
 void executer(mode_t mode, char* filePath) { //Will actually use chmod function (recursively if necessary)
     DIR *dir;
@@ -218,7 +224,20 @@ void executer(mode_t mode, char* filePath) { //Will actually use chmod function 
     }
     else{
         if(isDirectory(filePath)){ //Verifica se é um directorio, se for muda as permissoes e chama a funçao recursivamente, se for um ficheiro muda as permissoes
-            //chmod(filePath,mode);
+
+            //Esta parte ainda nao esta terminada mas era mil vezes mais fácil pensar nisto se o programa já tivesse a funcionar todo ok
+            /*struct stat info;
+            stat(filePath,&info);
+            if(chmod(filePath,mode)!=0){
+                printf("chmod error");
+            }
+            else if(vflag==C&&(info.st_mode!=mode)){
+                diagnosticPrint(filePath,info.st_mode,mode);
+            }
+            else if(vflag==V){
+                diagnosticPrint(filePath,info.st_mode,mode);
+            }*/
+
             if ((dir = opendir (filePath)) != NULL) {
                 while ((ent = readdir (dir)) != NULL) { 
                     if(strcmp(".",ent->d_name)!=0&&strcmp("..",ent->d_name)!=0){
@@ -239,8 +258,18 @@ void executer(mode_t mode, char* filePath) { //Will actually use chmod function 
             }
         }
         else{
-            //chmod(filePath,mode);
-            printf("Changed permissions");
+            //Esta parte ainda nao esta terminada mas era mil vezes mais fácil pensar nisto se o programa já tivesse a funcionar todo ok
+            /*struct stat info;
+            stat(filePath,&info);
+            if(chmod(filePath,mode)!=0){
+                printf("chmod error");
+            }
+            else if(vflag==C&&(info.st_mode!=mode)){
+                diagnosticPrint(filePath,info.st_mode,mode);
+            }
+            else if(vflag==V){
+                diagnosticPrint(filePath,info.st_mode,mode);
+            }*/
         }
     }
 
@@ -248,7 +277,7 @@ void executer(mode_t mode, char* filePath) { //Will actually use chmod function 
 
 void parser(char* arguments[], int n) {
     mode_t mode=777; //random initialization because I was getting warnings
-    int flags; //To save the result of the mode detection module (the flags to be used in chmod function)
+    //int flags; //To save the result of the mode detection module (the flags to be used in chmod function)
     char* filePath="testDir";
     for(int i = 1; i < 4 ; i++){
         //OCTAL MODE
