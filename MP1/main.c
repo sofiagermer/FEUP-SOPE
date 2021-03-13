@@ -36,6 +36,7 @@ void processOption(const char optFlag); //Processes an option
 void checkFile(const char* filePath); //Checks if a file exists
 bool isDirectory(const char* pathname); //Checks if file in pathname is a directory
 bool checkChanges(const mode_t oldMode, const mode_t newMode); //Checks if there were changes
+char* convertModeToString(mode_t mode); //Converts a mode to its string
 
 
 bool isDirectory(const char* pathname) { //Checks if the path is a directory, returns true if it is else it's a file
@@ -260,12 +261,20 @@ void parse(char* arguments[], int nArgs, char** filePath, char** mode) {
     }    
 }
 
+char* convertModeToString(mode_t mode) { //NOT YET IMPLEMENTED
+    int user, group, other;
+    char string1[9] = "";
+    user = mode / 10;
+    group = (mode / 10) % 10;
+    return "";
+}
+
 void executer(const char* mode, const char* filePath) { //Will actually use chmod function (recursively if necessary)
 
     mode_t oldMode;
     mode_t newMode;
     DIR *dir;
-    struct dirent *ent;
+    struct dirent *entry;
 
     checkFile(filePath);
     oldMode = getFilePermissions(filePath);
@@ -282,50 +291,20 @@ void executer(const char* mode, const char* filePath) { //Will actually use chmo
         diagnosticPrint(filePath, oldMode, newMode);
 
     if (recursive && isDirectory(filePath)) { //Verifica se é um directorio
-        /*
-        
-        struct stat info;
-        stat(filePath,&info);
-        else if(vflag==C&&(info.st_mode!=mode)){
-            diagnosticPrint(filePath,info.st_mode,mode);
-        }
-        else if(vflag==V){
-            diagnosticPrint(filePath,info.st_mode,mode);
-        }
 
         if ((dir = opendir (filePath)) != NULL) {
-            while ((ent = readdir (dir)) != NULL) { 
-                if(strcmp(".",ent->d_name)!=0&&strcmp("..",ent->d_name)!=0){
-                    printf ("%s\n", ent->d_name); 
-                    char* newPath=malloc(strlen(filePath)+strlen(ent->d_name)+1);
+            while ((entry = readdir (dir)) != NULL) { 
+                if(strcmp(".", entry->d_name) != 0 && strcmp("..", entry->d_name) != 0){
+                    printf ("%s\n", entry->d_name); 
+                    char* newPath = malloc(strlen(filePath) + strlen(entry->d_name) + 1);
                     strcat(newPath,filePath);
                     strcat(newPath,"/");
-                    strcat(newPath,ent->d_name);
-                    executer(mode,newPath); //Calls recursively until all permissions are changed
+                    strcat(newPath,entry->d_name);
                 }
                 
             }
-            closedir (dir);
-        } 
-        else {
-            printf("Dir did not open");
-            return;
         }
-        }
-        else{
-            //Esta parte ainda nao esta terminada mas era mil vezes mais fácil pensar nisto se o programa já tivesse a funcionar todo ok
-            struct stat info;
-            stat(filePath,&info);
-            if(chmod(filePath,mode)!=0){
-                printf("chmod error");
-            }
-            else if(vflag==C&&(info.st_mode!=mode)){
-                diagnosticPrint(filePath,info.st_mode,mode);
-            }
-            else if(vflag==V){
-                diagnosticPrint(filePath,info.st_mode,mode);
-            }
-        }*/
+        
     }
     
 
