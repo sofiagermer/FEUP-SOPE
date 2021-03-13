@@ -14,6 +14,8 @@
 #include <ctype.h>
 #include <math.h>
 
+#define BIT(n) 1 <<(n)
+
 typedef enum {C, V, NONE} verbose;
 
 extern int errno;
@@ -47,9 +49,9 @@ bool checkPath(const char *path) {
     return false;
 }
 
-long long convert1(int oct) {
+int convert1(int oct) {
     int dec = 0, i = 0;
-    long long bin = 0;
+    int bin = 0;
 
     // converting octal to decimal
     while (oct != 0) {
@@ -65,6 +67,7 @@ long long convert1(int oct) {
         dec /= 2;
         i *= 10;
     }
+    return bin;
 }
 
 int convert(int bin) {
@@ -115,10 +118,10 @@ bool CheckOctalMode(char i, char j, char k, char s) {
 int addPermisions(char i, char j, char k, int n){
     if
 }*/
-/*
+
 int findMode(char* modes, char* filePath){
-    int modeBefore = getChmod(filePath);
-    int modeAfter = 0;
+
+    int mode = getChmod(filePath);
     int n = strlen(modes);
 
     for(int i = 2; i < n; i++){
@@ -133,24 +136,24 @@ int findMode(char* modes, char* filePath){
             switch(*arguments[1]){
                 case '-':{
                     for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode -= 400;}
-                        if(i == 3 && *arguments[3] == 'w') {mode -= 200;}
-                        if(i == 4 && *arguments[4] == 'x') {mode -= 100;}
+                        if(i == 2 && *arguments[2] == 'r') {mode &= 011111111;}
+                        if(i == 3 && *arguments[3] == 'w') {mode &= 101111111;}
+                        if(i == 4 && *arguments[4] == 'x') {mode &= 110111111;}
                         else return -1;
                     }
                      break;
                 }
                 case '+': {
                    for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode += 400;}
-                        if(i == 3 && *arguments[3] == 'w') {mode += 200;}
-                        if(i == 4 && *arguments[4] == 'x') {mode += 100;}
+                        if(i == 2 && *arguments[2] == 'r') {mode |= BIT(8);}
+                        if(i == 3 && *arguments[3] == 'w') {mode |= BIT(7);}
+                        if(i == 4 && *arguments[4] == 'x') {mode |= BIT(6);}
                         else return -1;
                     }
                 }
                 case '=': {
                     for (int i = 2; i < n; i++) {
-
+                        
                     }
                 }
                 break;
@@ -161,17 +164,17 @@ int findMode(char* modes, char* filePath){
             switch(*arguments[1]){
                 case '-':{
                     for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode -= 40;}
-                        if(i == 3 && *arguments[3] == 'w') {mode -= 20;}
-                        if(i == 4 && *arguments[4] == 'x') {mode -= 10;}
+                        if(i == 2 && *arguments[2] == 'r') {mode &= 111111111;}
+                        if(i == 3 && *arguments[3] == 'w') {mode &= 101111111;}
+                        if(i == 4 && *arguments[4] == 'x') {mode &= 110111111;}
                         else return -1;
                     }
                 }
                 case '+': {
                     for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode += 40;}
-                        else if(i == 3 && *arguments[3] == 'w') {mode += 20;}
-                        else if(i == 4 && *arguments[4] == 'x') {mode += 10;}
+                        if(i == 2 && *arguments[2] == 'r') {mode |= BIT(5);}
+                        if(i == 3 && *arguments[3] == 'w') {mode |= BIT(4);}
+                        if(i == 4 && *arguments[4] == 'x') {mode |= BIT(3);}
                         else return -1;
                     }
                     break;
@@ -190,13 +193,12 @@ int findMode(char* modes, char* filePath){
                     }
                 }
                 case '+': {
-                    for(int i = 2; i < n; i++){
-                        if(i == 2 && *arguments[2] == 'r') {mode += 40;}
-                        else if(i == 3 && *arguments[3] == 'w') {mode += 20;}
-                        else if(i == 4 &&*arguments[4] == 'x') {mode += 10;}
+                   for(int i = 2; i < n; i++){
+                        if(i == 2 && *arguments[2] == 'r') {mode |= BIT(5);}
+                        if(i == 3 && *arguments[3] == 'w') {mode |= BIT(4);}
+                        if(i == 4 && *arguments[4] == 'x') {mode |= BIT(3);}
                         else return -1;
                     }
-                }
             }
             break;
         }
@@ -226,7 +228,7 @@ int findMode(char* modes, char* filePath){
             break;
     }
     return mode;
-}*/
+}
 
 void diagnosticPrint(char* filePath,mode_t oldMode,mode_t newMode){ //falta converter estes modos todos para a notação correcta
     char* oldPermissions="",*newPermissions=""; //inicializei so para calar warnings
@@ -391,8 +393,13 @@ void parser(char* arguments[], int n) {
 
 int main(int argc, char* argv[], char* envp[]) {
     //chmod("textfile.txt", 0777);
+    /*printf("estou aqui \n");
     int oct = getChmod("textfile.txt");
-    printf("%l", convert1(oct));
+    int bin = convert1(oct);
+    printf("after \n");*/
+    int s = 111111111;
+    s &= BIT(9);
+    printf("%d", s);
     parser(argv, argc);
     return 0;
 }
