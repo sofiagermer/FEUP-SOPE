@@ -42,11 +42,63 @@ mode_t getFilePermissions(const char *path) {
     m &= 0x00fff;
     return m;
 }
+int get_bit(int bits, int pos)
+{
+   return (bits >> pos) & 0x01;
+}
+char* fromOctalToString(mode_t mode){
+    char* permissions=malloc(10);
+    for(int i=0;i<9;i++){
+        if((i==0||i==3||i==6)&&get_bit(mode,i)==1){
+            permissions[i]='r';
+        }
+        else if((i==1||i==4||i==7)&&get_bit(mode,i)==1){
+            permissions[i]='w';
+        }
+        else if((i==2||i==5||i==8)&&get_bit(mode,i)==1){
+            permissions[i]='x';
+        }
+        else{
+            permissions[i]='-';
+        }
+    }
+    return permissions;
+    
+}
+char* fourDigitOctal(mode_t mode){
+    char *str;
+    str=malloc(5);
+    if(mode<=7){ // in Octal -> 0007
+        char aux[2];
+        char* zeros="000";
+        sprintf(aux, "%o", mode);
+        strcat(str,zeros);
+        strcat(str,aux);
+    }
+    else if(mode<=63){ // in Octal -> 0070
+        char aux[3];
+        char* zeros="00";
+        sprintf(aux, "%o", mode);
+        strcat(str,zeros);
+        strcat(str,aux);
+    }
+    else{ 
+        char aux[4];
+        char* zeros="0";
+        sprintf(aux, "%o", mode);
+        strcat(str,zeros);
+        strcat(str,aux);
+    }
+    return str;
+}
 
 void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode) { 
-    char* oldPermissions = "", *newPermissions = ""; 
+    char* oldPermissions = fromOctalToString(oldMode), *newPermissions = fromOctalToString(newMode); 
+    if(checkChanges(oldMode,newMode)&&(vflag==V||vflag==C))
+        printf("mode of '%s' changed from %s (%s) to %s (%s)\n",filePath, fourDigitOctal(oldMode), oldPermissions, fourDigitOctal(newMode), newPermissions);
+    else if(!checkChanges(oldMode,newMode)&&vflag==V)
+        printf("mode of '%s' retained as %s (%s)\n",filePath, fourDigitOctal(oldMode), oldPermissions);
     
-    printf("mode of '%s' changed from %o (%s) to %o (%s)\n",filePath, oldMode, oldPermissions, newMode, newPermissions);
 }
 
 void checkFile(const char* filePath) {
@@ -123,8 +175,7 @@ void executer(const char* mode, const char* filePath) { //Will actually use chmo
         fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
         exit(1);
     }
-    if ((vflag == C && checkChanges(oldMode, newMode)) || vflag == V) 
-        diagnosticPrint(filePath, oldMode, newMode);
+    else diagnosticPrint(filePath, oldMode, newMode);
 
     if (recursive && isDirectory(filePath)) { //Verifica se é um directorio
 
@@ -183,7 +234,6 @@ int main(int argc, char* argv[], char* envp[]) {
     printf("Mode:%s\n", mode);
     printf("File name:%s\n", filePath);
 
-    executer(mode, filePath);
-
+    executer(mode, filePath);  
     return 0;
 }
