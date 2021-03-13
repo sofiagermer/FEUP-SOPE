@@ -1,13 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <fcntl.h> 
-#include <sys/types.h> 
-#include <errno.h>
-#include <string.h>
-#include <stdbool.h>
 #include <dirent.h>
-#include <unistd.h>
 #include "modes.h"
 
 typedef enum {C, V, NONE} Verbose;
@@ -22,7 +13,6 @@ void parse(char* arguments[], int nArgs, char** filePath, char** mode); //Parses
 void executer(const char* mode, const char* filePath); //Recursive funtion
 
 //AUXILIARY FUNCS
-mode_t convert(int octal); //To convert octal do decimal
 void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode); //Verbose messages
 void processOption(const char optFlag); //Processes an option
 void checkFile(const char* filePath); //Checks if a file exists
