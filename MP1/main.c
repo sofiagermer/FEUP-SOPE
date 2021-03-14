@@ -18,9 +18,11 @@ void processOption(const char optFlag); //Processes an option
 void checkFile(const char* filePath); //Checks if a file exists
 bool isDirectory(const char* pathname); //Checks if file in pathname is a directory
 bool checkChanges(const mode_t oldMode, const mode_t newMode); //Checks if there were changes
-char* convertModeToString(mode_t mode); //Converts a mode to its string
 mode_t getFilePermissions(const char *path); //Returns the permissions of the file being treated
-
+int get_bit(int bits, int pos);
+char* fromOctalToString(mode_t mode); //Converts mode to a string to be printed
+char* fourDigitOctal(mode_t mode);
+void calculateSpaceDir(DIR* dir, int* numFiles, int* maxSizeFile); //Calculates the space to be allocated for the array of files
 
 bool isDirectory(const char* pathname) { //Checks if the path is a directory, returns true if it is else it's a file
 
@@ -42,11 +44,12 @@ mode_t getFilePermissions(const char *path) {
     m &= 0x00fff;
     return m;
 }
-int get_bit(int bits, int pos)
-{
+
+int get_bit(int bits, int pos) {
    return (bits >> pos) & 0x01;
 }
-char* fromOctalToString(mode_t mode){
+
+char* fromOctalToString(mode_t mode) {
     char* permissions=malloc(10);
     for(int i=0;i<9;i++){
         if((i==0||i==3||i==6)&&get_bit(mode,i)==1){
@@ -65,6 +68,7 @@ char* fromOctalToString(mode_t mode){
     return permissions;
     
 }
+
 char* fourDigitOctal(mode_t mode){
     char *str;
     str=malloc(5);
@@ -94,11 +98,11 @@ char* fourDigitOctal(mode_t mode){
 
 void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode) { 
     char* oldPermissions = fromOctalToString(oldMode), *newPermissions = fromOctalToString(newMode); 
-    if(checkChanges(oldMode,newMode)&&(vflag==V||vflag==C))
+
+    if(checkChanges(oldMode, newMode) && (vflag == V || vflag == C))
         printf("mode of '%s' changed from %s (%s) to %s (%s)\n",filePath, fourDigitOctal(oldMode), oldPermissions, fourDigitOctal(newMode), newPermissions);
     else if(!checkChanges(oldMode,newMode)&&vflag==V)
         printf("mode of '%s' retained as %s (%s)\n",filePath, fourDigitOctal(oldMode), oldPermissions);
-    
 }
 
 void checkFile(const char* filePath) {
@@ -131,6 +135,19 @@ bool checkChanges(const mode_t oldMode, const mode_t newMode) {
     else return true;
 }
 
+void calculateSpaceDir(DIR* dir, int* numFiles, int* maxSizeFile) { //NOT TESTED
+    *maxSizeFile = 0;
+    *numFiles = 0;
+    struct dirent *entry;
+    while ((entry = readdir (dir)) != NULL) { 
+        if(strcmp(".", entry->d_name) != 0 && strcmp("..", entry->d_name) != 0) {
+            if (strlen(entry->d_name) > *maxSizeFile)
+                *maxSizeFile = strlen(entry->d_name);
+            (*numFiles)++;
+        } 
+    }
+}
+
 void parse(char* arguments[], int nArgs, char** filePath, char** mode) { 
 
     bool isMode = true;
@@ -149,15 +166,7 @@ void parse(char* arguments[], int nArgs, char** filePath, char** mode) {
     }    
 }
 
-char* convertModeToString(mode_t mode) { //NOT YET IMPLEMENTED
-    int user, group, other;
-    char string1[9] = "";
-    user = mode / 10;
-    group = (mode / 10) % 10;
-    return "";
-}
-
-void executer(const char* mode, const char* filePath) { //Will actually use chmod function (recursively if necessary)
+void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
 
     mode_t oldMode;
     mode_t newMode;
@@ -177,9 +186,21 @@ void executer(const char* mode, const char* filePath) { //Will actually use chmo
     }
     else diagnosticPrint(filePath, oldMode, newMode);
 
+    //NOT TESTED
+    /*
     if (recursive && isDirectory(filePath)) { //Verifica se é um directorio
 
         if ((dir = opendir (filePath)) != NULL) {
+
+            //Allocate files array
+            int numFiles, maxSizeFile;
+            calculateSpaceDir(dir, &numFiles, &maxSizeFile);
+            char **filesArr = (char **) malloc(numFiles * sizeof(char*)); 
+            for (unsigned int i = 0; i < numFiles; i++) 
+                filesArr[i] = (char *) malloc(maxSizeFile * sizeof(char));
+
+            //Fill it
+            int i = 0;
             while ((entry = readdir (dir)) != NULL) { 
                 if(strcmp(".", entry->d_name) != 0 && strcmp("..", entry->d_name) != 0){
                     printf ("%s\n", entry->d_name); 
@@ -187,14 +208,15 @@ void executer(const char* mode, const char* filePath) { //Will actually use chmo
                     strcat(newPath,filePath);
                     strcat(newPath,"/");
                     strcat(newPath,entry->d_name);
-                }
-                
+                    filesArr[i] = newPath;
+                    i++;
+                }               
             }
-        }
-        
-    }
-    
-
+            for (unsigned int i = 0; i < numFiles; i++) {
+                executer(mode, filesArr[i]);
+            }
+        }       
+    }*/
 }
 
 int main(int argc, char* argv[], char* envp[]) {
