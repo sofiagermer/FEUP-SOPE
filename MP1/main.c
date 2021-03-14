@@ -45,11 +45,11 @@ mode_t getFilePermissions(const char *path) {
     return m;
 }
 
-int get_bit(int bits, int pos) {
+int get_bit(int bits, int pos) { //returns the value of the bit at position pos of the value bits
    return (bits >> pos) & 0x01;
 }
 
-char* fromOctalToString(mode_t mode) {
+char* fromOctalToString(mode_t mode) { //converts Octal to a string with rwx notation
     char* permissions=malloc(10);
     for(int i=0;i<9;i++){
         if((i==0||i==3||i==6)&&get_bit(mode,i)==1){
@@ -69,7 +69,7 @@ char* fromOctalToString(mode_t mode) {
     
 }
 
-char* fourDigitOctal(mode_t mode){
+char* fourDigitOctal(mode_t mode){ //adds zeros, example input: 777-> return: "0777"
     char *str;
     str=malloc(5);
     if(mode<=7){ // in Octal -> 0007
