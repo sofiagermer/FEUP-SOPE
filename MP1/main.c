@@ -28,7 +28,6 @@ void setUpSigHandler(); //Set up the signal handling
 
 void sigHandler(int signo) {
     printf("\nPID:%d FILEPATH: NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), noFilesFound, noFilesChanged);
-    sleep(2);
     exit(1);
 }
 
@@ -279,19 +278,11 @@ int main(int argc, char* argv[], char* envp[]) {
     //Parse
     parse(argv, argc, &filePath, &mode);
 
-    //TESTING
-    /*
-    if (vflag == V) printf("V: ok\n");
-    else if (vflag == C) printf("C: ok\n");
-    else if (vflag == NONE) printf("NONE: ok\n");
-    else printf("Merdou\n");
-    if (recursive) printf("Recursive: ok\n");
-    else printf("Non recursive\n");
-    printf("Mode:%s\n", mode);
-    printf("File name:%s\n", filePath);*/
+
     noFilesChanged = 0;
     noFilesFound = 0;
 
+    //Recursive function
     executer(mode, filePath);  
     sleep(10);
     
