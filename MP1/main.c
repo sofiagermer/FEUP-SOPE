@@ -1,4 +1,5 @@
 #include <dirent.h>
+#include <signal.h>
 #include "modes.h"
 
 typedef enum {C, V, NONE} Verbose;
@@ -22,6 +23,36 @@ mode_t getFilePermissions(const char *path); //Returns the permissions of the fi
 int get_bit(int bits, int pos);
 char* fromOctalToString(mode_t mode); //Converts mode to a string to be printed
 char* fourDigitOctal(mode_t mode);
+void sigHandler(int signo); //Handles ctrlC
+void setUpSigHandler(); //Set up the signal handling
+
+void sigHandler(int signo) {
+    printf("\nCrlc received\n");
+    exit(1);
+}
+
+void setUpSigHandler() {
+    struct sigaction new, old;
+    sigset_t smask;
+    if (sigemptyset(&smask) == -1) {
+        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
+        exit(1);
+    }
+    new.sa_mask = smask;
+    new.sa_flags = 0;
+    new.sa_handler = sigHandler;
+    if (sigaction(SIGINT, &new, &old) == -1) {
+        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
+        exit(1);
+    }
+}
+
+void handleNewProcess(char* filePath, char* mode) {
+
+
+    setUpSigHandler();
+    executer(mode, filePath);
+}
 
 bool isDirectory(const char* pathname) { //Checks if the path is a directory, returns true if it is else it's a file
 
@@ -193,12 +224,13 @@ void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
                     executer(mode, newPath);
                     continue;
                 }
-
+                
                 int id = fork();
                 switch (id) {
                     case 0: {
-                        printf("I am the child, my file is %s\n", newPath);
-                        exit(0);
+                        printf("I was created!\n");
+                        sleep(20);
+                        //executer(mode, filePath);
                         break;
                     }
                     case -1:{
@@ -218,25 +250,8 @@ void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
 }
 
 int main(int argc, char* argv[], char* envp[]) {
-    //TESTING
-    /*
-    //mode_t oldMode = getChmod("textfile.txt");
-    mode_t oldMode = S_IROTH | S_IWOTH;
-    mode_t newMode = S_IROTH;
-    printf("oldmode:%o\n", oldMode);
-    printf("newmode:%o\n", newMode);
-    mode_t mode = oldMode & ~newMode;
-    int mode2 = (int) mode;
-    printf("mode:%o\n", mode);
-    printf("mode2:%o\n", mode2);
-    chmod("textfile.txt", mode2);
-    int i = 777;
-    printf("%o\n", convertOctalToDecimal(i));
-    mode_t e = convertOctalToDecimal(i);
-    chmod("textfile.txt", i);
-    */
-
     
+    setUpSigHandler();
     //Variables
     char* filePath = "";
     char* mode = "";
@@ -256,5 +271,8 @@ int main(int argc, char* argv[], char* envp[]) {
     printf("File name:%s\n", filePath);*/
 
     executer(mode, filePath);  
+    sleep(5);
+    
+
     return 0;
 }
