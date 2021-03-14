@@ -8,6 +8,8 @@ extern int errno;
 
 bool recursive;
 Verbose vflag = NONE;
+int noFilesFound;
+int noFilesChanged;
 
 //BIGGER FUNCS
 void parse(char* arguments[], int nArgs, char** filePath, char** mode); //Parses arguments
@@ -16,7 +18,7 @@ void executer(const char* mode, const char* filePath); //Recursive funtion
 //AUXILIARY FUNCS
 void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode); //Verbose messages
 void processOption(const char optFlag); //Processes an option
-void checkFile(const char* filePath); //Checks if a file exists
+int checkFile(const char* filePath); //Checks if a file exists
 bool isDirectory(const char* pathname); //Checks if file in pathname is a directory
 bool checkChanges(const mode_t oldMode, const mode_t newMode); //Checks if there were changes
 mode_t getFilePermissions(const char *path); //Returns the permissions of the file being treated
@@ -27,7 +29,8 @@ void sigHandler(int signo); //Handles ctrlC
 void setUpSigHandler(); //Set up the signal handling
 
 void sigHandler(int signo) {
-    printf("\nCrlc received\n");
+    printf("\nPID:%d FILEPATH: NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), noFilesFound, noFilesChanged);
+    sleep(2);
     exit(1);
 }
 
@@ -135,11 +138,10 @@ void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t ne
         printf("mode of '%s' retained as %s (%s)\n",filePath, fourDigitOctal(oldMode), oldPermissions);
 }
 
-void checkFile(const char* filePath) {
-    if (access(filePath, F_OK) == -1) {
-        fprintf(stderr, "File name wrong: %s", strerror(errno));
-        exit(1);
-    }
+int checkFile(const char* filePath) {
+    if (access(filePath, F_OK) == -1) 
+        return 1;
+    return 0;
 }
 
 void processOption(const char optFlag) {
@@ -190,18 +192,24 @@ void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
     DIR *dir;
     struct dirent *entry;
 
-    checkFile(filePath);
+    if (checkFile(filePath) != 0) {
+        fprintf(stderr, "File name wrong: %s", strerror(errno));
+        exit(1);
+    }
+    else 
+        noFilesFound++;
+
     oldMode = getFilePermissions(filePath);
     newMode = getModeNum(mode, filePath, oldMode);
-
-    //TESTING
-    //printf("Mode numerical:%o\n", newMode);
 
     if (chmod(filePath, newMode) != 0) {
         fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
         exit(1);
     }
-    else diagnosticPrint(filePath, oldMode, newMode);
+    else {
+        noFilesChanged++;
+        diagnosticPrint(filePath, oldMode, newMode);
+    }
     
     if (recursive && isDirectory(filePath)) { //Verifica se é um directorio
 
@@ -218,8 +226,8 @@ void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
                 strcat(newPath,filePath);
                 strcat(newPath,"/");
                 strcat(newPath,entry->d_name);
-                printf("File:%s\n", newPath);
 
+                //VERIFY IF IT IS A DIRECTORY
                 if (entry->d_type != DT_DIR) {
                     executer(mode, newPath);
                     continue;
@@ -228,9 +236,10 @@ void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
                 int id = fork();
                 switch (id) {
                     case 0: {
-                        printf("I was created!\n");
+                        noFilesChanged = 0;
+                        noFilesFound = 0;
+                        executer(mode, newPath);
                         sleep(20);
-                        //executer(mode, filePath);
                         break;
                     }
                     case -1:{
@@ -238,7 +247,7 @@ void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
                         exit(1);
                     }
                     default: {
-                        printf("I am the parent\n");
+                        //printf("I am the parent\n");
                         break;
                     }
                 }
@@ -269,9 +278,11 @@ int main(int argc, char* argv[], char* envp[]) {
     else printf("Non recursive\n");
     printf("Mode:%s\n", mode);
     printf("File name:%s\n", filePath);*/
+    noFilesChanged = 0;
+    noFilesFound = 0;
 
     executer(mode, filePath);  
-    sleep(5);
+    sleep(10);
     
 
     return 0;
