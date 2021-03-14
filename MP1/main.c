@@ -22,7 +22,6 @@ mode_t getFilePermissions(const char *path); //Returns the permissions of the fi
 int get_bit(int bits, int pos);
 char* fromOctalToString(mode_t mode); //Converts mode to a string to be printed
 char* fourDigitOctal(mode_t mode);
-void calculateSpaceDir(DIR* dir, int* numFiles, int* maxSizeFile); //Calculates the space to be allocated for the array of files
 
 bool isDirectory(const char* pathname) { //Checks if the path is a directory, returns true if it is else it's a file
 
@@ -135,19 +134,6 @@ bool checkChanges(const mode_t oldMode, const mode_t newMode) {
     else return true;
 }
 
-void calculateSpaceDir(DIR* dir, int* numFiles, int* maxSizeFile) { //NOT TESTED
-    *maxSizeFile = 0;
-    *numFiles = 0;
-    struct dirent *entry;
-    while ((entry = readdir (dir)) != NULL) { 
-        if(strcmp(".", entry->d_name) != 0 && strcmp("..", entry->d_name) != 0) {
-            if (strlen(entry->d_name) > *maxSizeFile)
-                *maxSizeFile = strlen(entry->d_name);
-            (*numFiles)++;
-        } 
-    }
-}
-
 void parse(char* arguments[], int nArgs, char** filePath, char** mode) { 
 
     bool isMode = true;
@@ -178,45 +164,57 @@ void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
     newMode = getModeNum(mode, filePath, oldMode);
 
     //TESTING
-    printf("Mode numerical:%o\n", newMode);
+    //printf("Mode numerical:%o\n", newMode);
 
     if (chmod(filePath, newMode) != 0) {
         fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
         exit(1);
     }
     else diagnosticPrint(filePath, oldMode, newMode);
-
-    //NOT TESTED
-    /*
+    
     if (recursive && isDirectory(filePath)) { //Verifica se é um directorio
 
-        if ((dir = opendir (filePath)) != NULL) {
+        if ((dir = opendir (filePath)) == NULL) {
+            fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
+            exit(1);
+        }
 
-            //Allocate files array
-            int numFiles, maxSizeFile;
-            calculateSpaceDir(dir, &numFiles, &maxSizeFile);
-            char **filesArr = (char **) malloc(numFiles * sizeof(char*)); 
-            for (unsigned int i = 0; i < numFiles; i++) 
-                filesArr[i] = (char *) malloc(maxSizeFile * sizeof(char));
+        while ((entry = readdir (dir)) != NULL) { 
+            if(strcmp(".", entry->d_name) != 0 && strcmp("..", entry->d_name) != 0){
 
-            //Fill it
-            int i = 0;
-            while ((entry = readdir (dir)) != NULL) { 
-                if(strcmp(".", entry->d_name) != 0 && strcmp("..", entry->d_name) != 0){
-                    printf ("%s\n", entry->d_name); 
-                    char* newPath = malloc(strlen(filePath) + strlen(entry->d_name) + 1);
-                    strcat(newPath,filePath);
-                    strcat(newPath,"/");
-                    strcat(newPath,entry->d_name);
-                    filesArr[i] = newPath;
-                    i++;
-                }               
-            }
-            for (unsigned int i = 0; i < numFiles; i++) {
-                executer(mode, filesArr[i]);
-            }
-        }       
-    }*/
+                //NEW FILE
+                char* newPath = (char*) malloc(strlen(entry->d_name) + 1 + strlen(filePath));
+                strcat(newPath,filePath);
+                strcat(newPath,"/");
+                strcat(newPath,entry->d_name);
+                printf("File:%s\n", newPath);
+
+                if (entry->d_type != DT_DIR) {
+                    executer(mode, newPath);
+                    continue;
+                }
+
+                int id = fork();
+                switch (id) {
+                    case 0: {
+                        printf("I am the child, my file is %s\n", newPath);
+                        exit(0);
+                        break;
+                    }
+                    case -1:{
+                        fprintf(stderr, "Error with fork:%s\n", strerror(errno));
+                        exit(1);
+                    }
+                    default: {
+                        printf("I am the parent\n");
+                        break;
+                    }
+                }
+
+            }               
+        }
+
+    }
 }
 
 int main(int argc, char* argv[], char* envp[]) {
@@ -247,6 +245,7 @@ int main(int argc, char* argv[], char* envp[]) {
     parse(argv, argc, &filePath, &mode);
 
     //TESTING
+    /*
     if (vflag == V) printf("V: ok\n");
     else if (vflag == C) printf("C: ok\n");
     else if (vflag == NONE) printf("NONE: ok\n");
@@ -254,7 +253,7 @@ int main(int argc, char* argv[], char* envp[]) {
     if (recursive) printf("Recursive: ok\n");
     else printf("Non recursive\n");
     printf("Mode:%s\n", mode);
-    printf("File name:%s\n", filePath);
+    printf("File name:%s\n", filePath);*/
 
     executer(mode, filePath);  
     return 0;
