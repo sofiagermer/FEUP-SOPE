@@ -54,23 +54,20 @@ void handleNewProcess(char* filePath, char* mode) {
     executer(mode, filePath);
 }
 
-/*
-char* initRegister() {
 
-    char *filename;
-    if ( (filename = getenv("LOG_FILENAME")) == NULL) 
-        fprintf(stderr, "Environment variable LOG_FILENAME's value error:%s\n", strerror(errno));
-
+char* initRegister(){
+    char *filename = getenv("LOG_FILENAME");
+    if(filename == NULL) printf("Environment variable Error \n");
     //Opens a text file for both reading and writing. 
     //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.
     const char * mode = "w+";
-    FILE* file = fopen(filename, mode);
-
+    FILE *file = fopen(filename, mode);
+    
     if(fclose(file) != 0) printf("Error closing register file \n"); 
     return filename;
 }
 
-void registerExecution(char filename, double time, pid_t pid, char* event, char* info){
+void regitExecution(char* filename, double time, pid_t pid, char* event, char* info){
     const char * mode = "a";
     FILE *file = fopen(filename, mode);
     fprintf(file, "%f", time);
@@ -83,7 +80,7 @@ void registerExecution(char filename, double time, pid_t pid, char* event, char*
     fputs("\n",file);
     if(fclose(file) != 0) printf("Error closing register file \n"); 
 }
-*/
+
 
 bool isDirectory(const char* pathname) { //Checks if the path is a directory, returns true if it is else it's a file
 
