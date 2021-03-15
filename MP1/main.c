@@ -13,8 +13,8 @@ int noFilesFound;
 int noFilesChanged;
 
 //BIGGER FUNCS
-void parse(char* arguments[], int nArgs, char** filePath, char** mode); //Parses arguments
-void executer(const char* mode, const char* filePath, const char * registFileName, const clock_t initialTime); //Recursive funtion
+void parse(char* arguments[], int nArgs, char** filePath, char** mode, int *index); //Parses arguments
+void executer(const char* mode, const char* filePath, const char * registFileName, const clock_t initialTime, const char** argv, const int numArgs); //Recursive funtion
 
 //AUXILIARY FUNCS
 void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode); //Verbose messages
@@ -182,7 +182,7 @@ bool checkChanges(const mode_t oldMode, const mode_t newMode) {
     else return true;
 }
 
-void parse(char* arguments[], int nArgs, char** filePath, char** mode) { 
+void parse(char* arguments[], int nArgs, char** filePath, char** mode, int *index) { 
 
     bool isMode = true;
  
@@ -196,11 +196,20 @@ void parse(char* arguments[], int nArgs, char** filePath, char** mode) {
             *mode = arguments[i];
             isMode = false;
         }
-        else *filePath = arguments[i];      
+        else {
+            *filePath = arguments[i];  
+            *index = i;
+        }    
     }    
 }
 
-void executer(const char* mode, const char* filePath, const char *registFileName, const clock_t initialTime) { //IMPLEMENTING...
+void copyArgv(const char *argv[], const char * newArguments[],const int numArgs){
+    for(int i = 0; i < numArgs; i++){
+        newArguments[i] = argv[i];
+    }
+}
+
+void executer(const char* mode, const char* filePath, const char *registFileName, const clock_t initialTime, const char **argv, const int numArgs) { //IMPLEMENTING...
 
     mode_t oldMode;
     mode_t newMode;
@@ -224,9 +233,9 @@ void executer(const char* mode, const char* filePath, const char *registFileName
         exit(1);
     }
     else {
-        char info[strlen(filePath)+8+6+1];
+        /*char info[strlen(filePath)+8+6+1];
         sprintf(info,"%s : %s : %s",filePath,fourDigitOctal(oldMode),fourDigitOctal(newMode));
-        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "FILE_MODF", info);
+        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "FILE_MODF", info);*/
         noFilesChanged++;
         diagnosticPrint(filePath, oldMode, newMode);
     }
@@ -250,7 +259,7 @@ void executer(const char* mode, const char* filePath, const char *registFileName
 
                 //VERIFY IF IT IS A DIRECTORY
                 if (entry->d_type != DT_DIR) {
-                    executer(mode, newPath, registFileName, initialTime);
+                    executer(mode, newPath, registFileName, initialTime, argv, numArgs);
                     continue;
                 }
                 
@@ -260,7 +269,10 @@ void executer(const char* mode, const char* filePath, const char *registFileName
                         regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_CREAT" , "GET INFO!!!");
                         noFilesChanged = 0;
                         noFilesFound = 0;
-                        executer(mode, newPath, registFileName, initialTime);
+                        char *newArguments[numArgs];
+                        copyArgv(argv, newArguments, numArgs);
+                        //if(execvp("main.exe"))
+                        //executer(mode, newPath, registFileName, initialTime,);
                         sleep(20);
                         break;
                     }
@@ -274,6 +286,7 @@ void executer(const char* mode, const char* filePath, const char *registFileName
                         break;
                     }
                 }
+                free(newPath);
 
             }               
         }
@@ -291,16 +304,15 @@ int main(int argc, char* argv[], char* envp[]) {
     //Variables
     char* filePath = "";
     char* mode = "";
-
+    int index;
     //Parse
-    parse(argv, argc, &filePath, &mode);
-
+    parse(argv, argc, &filePath, &mode, &index);
 
     noFilesChanged = 0;
     noFilesFound = 0;
 
     //Recursive function
-    executer(mode, filePath,registFileName, initialTime);
+    executer(mode, filePath,registFileName, initialTime, argv, argc);
     sleep(10);
 
     return 0;
