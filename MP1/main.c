@@ -287,7 +287,7 @@ void executer(char* filePath) { //IMPLEMENTING...
                         makeNewArgs(args, newPath);
                         printf("New file path:%s\n", args[pInfo->args.fileNameIndex]);
                         
-                        if (execvp("main.exe", args) == -1) {
+                        if (execvp(args[0], args) == -1) {
                             fprintf(stderr, "Error with execvpe: %s", strerror(errno));
                             exit(1);
                         }
