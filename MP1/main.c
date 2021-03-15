@@ -3,6 +3,7 @@
 #include "modes.h"
 #include "options.h"
 #include "time.h"
+#include "string.h"
 
 extern int errno;
 
@@ -13,7 +14,7 @@ int noFilesChanged;
 
 //BIGGER FUNCS
 void parse(char* arguments[], int nArgs, char** filePath, char** mode); //Parses arguments
-void executer(const char* mode, const char* filePath, const char * registerFileName, const clock_t initialTime); //Recursive funtion
+void executer(const char* mode, const char* filePath, const char * registFileName, const clock_t initialTime); //Recursive funtion
 
 //AUXILIARY FUNCS
 void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode); //Verbose messages
@@ -26,6 +27,13 @@ char* fromOctalToString(mode_t mode); //Converts mode to a string to be printed
 char* fourDigitOctal(mode_t mode);
 void sigHandler(int signo); //Handles ctrlC
 void setUpSigHandler(); //Set up the signal handling
+double getMiliSeconds(clock_t initialTime); //Returns time in miliseconds since initialTime
+void regitExecution(const char* filename, double time, pid_t pid, char* event, char* info); // Writes on execution register
+
+double getMiliSeconds(clock_t initialTime){
+    clock_t actualTime = clock();
+    return (double)(actualTime-initialTime)/(CLOCKS_PER_SEC/1000);
+}
 
 void sigHandler(int signo) {
     printf("\nPID:%d FILEPATH: NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), noFilesFound, noFilesChanged);
@@ -65,11 +73,6 @@ char* initRegister(){
     
     if(fclose(file) != 0) printf("Error closing register file \n"); 
     return filename;
-}
-
-double getMiliSeconds(clock_t initialTime){
-    clock_t actualTime = clock();
-    return (double)(actualTime-initialTime)/(CLOCKS_PER_SEC/1000);
 }
 
 void regitExecution(const char* filename, double time, pid_t pid, char* event, char* info){
@@ -205,6 +208,7 @@ void executer(const char* mode, const char* filePath, const char *registFileName
     struct dirent *entry;
 
     if (checkFile(filePath) != 0) {
+        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
         fprintf(stderr, "File name wrong: %s", strerror(errno));
         exit(1);
     }
@@ -215,10 +219,14 @@ void executer(const char* mode, const char* filePath, const char *registFileName
     newMode = getModeNum(mode, filePath, oldMode);
 
     if (chmod(filePath, newMode) != 0) {
+        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
         fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
         exit(1);
     }
     else {
+        char info[strlen(filePath)+8+6+1];
+        sprintf(info,"%s : %s : %s",filePath,fourDigitOctal(oldMode),fourDigitOctal(newMode));
+        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "FILE_MODF", info);
         noFilesChanged++;
         diagnosticPrint(filePath, oldMode, newMode);
     }
@@ -227,6 +235,7 @@ void executer(const char* mode, const char* filePath, const char *registFileName
 
         if ((dir = opendir (filePath)) == NULL) {
             fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
+            regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
             exit(1);
         }
 
@@ -257,6 +266,7 @@ void executer(const char* mode, const char* filePath, const char *registFileName
                     }
                     case -1:{
                         fprintf(stderr, "Error with fork:%s\n", strerror(errno));
+                        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
                         exit(1);
                     }
                     default: {
@@ -269,7 +279,6 @@ void executer(const char* mode, const char* filePath, const char *registFileName
         }
 
     }
-    sleep(8);
     regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "0");
 }
 
@@ -278,7 +287,7 @@ int main(int argc, char* argv[], char* envp[]) {
     const char * registFileName = initRegister(); 
     clock_t initialTime = clock();
     
-    setUpSigHandler();
+    setUpSigHandler(registFileName, initialTime);
     //Variables
     char* filePath = "";
     char* mode = "";
