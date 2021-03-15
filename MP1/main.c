@@ -11,6 +11,12 @@ Options options;
 
 int noFilesFound;
 int noFilesChanged;
+typedef struct {
+    char** arguments;
+    int nArgs;
+} arguments;
+char* arguments[];
+int nArgs;
 
 //BIGGER FUNCS
 void parse(char* arguments[], int nArgs, char** filePath, char** mode, int *index); //Parses arguments
@@ -203,13 +209,14 @@ void parse(char* arguments[], int nArgs, char** filePath, char** mode, int *inde
     }    
 }
 
-void copyArgv(const char *argv[], const char * newArguments[],const int numArgs){
-    for(int i = 0; i < numArgs; i++){
-        newArguments[i] = argv[i];
+void copyArgv(char* argv[], char* newArgs[], int argc) {
+    for (unsigned int i = 0; i < nArgs; i++) {
+        arguments[i] = argv[i];
     }
 }
 
-void executer(const char* mode, const char* filePath, const char *registFileName, const clock_t initialTime, const char **argv, const int numArgs) { //IMPLEMENTING...
+void executer(const char* mode, const char* filePath, const char *registFileName, const clock_t initialTime) { //IMPLEMENTING...
+
 
     mode_t oldMode;
     mode_t newMode;
@@ -233,9 +240,10 @@ void executer(const char* mode, const char* filePath, const char *registFileName
         exit(1);
     }
     else {
-        /*char info[strlen(filePath)+8+6+1];
+
+        /* char info[strlen(filePath)+8+6+1];  //Nao funciona n percebo pq....
         sprintf(info,"%s : %s : %s",filePath,fourDigitOctal(oldMode),fourDigitOctal(newMode));
-        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "FILE_MODF", info);*/
+        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "FILE_MODF", info); */
         noFilesChanged++;
         diagnosticPrint(filePath, oldMode, newMode);
     }
@@ -266,19 +274,22 @@ void executer(const char* mode, const char* filePath, const char *registFileName
                 int id = fork();
                 switch (id) {
                     case 0: {
-                        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_CREAT" , "GET INFO!!!");
-                        noFilesChanged = 0;
+                        //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_CREAT" , "GET INFO!!!");
+                        /*noFilesChanged = 0;
                         noFilesFound = 0;
-                        char *newArguments[numArgs];
-                        copyArgv(argv, newArguments, numArgs);
-                        //if(execvp("main.exe"))
-                        //executer(mode, newPath, registFileName, initialTime,);
+
+                        char* args[nArgs];
+                        copyArgv(arguments, args, nArgs);
+                        if (execvp("main.exe", args) == -1) {
+                            fprintf(stderr, "Error executing main.exe:%s", strerror(errno));
+                            exit(1);
+                        }
                         sleep(20);
-                        break;
+                        break;*/
                     }
                     case -1:{
                         fprintf(stderr, "Error with fork:%s\n", strerror(errno));
-                        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
+                        //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
                         exit(1);
                     }
                     default: {
@@ -292,10 +303,13 @@ void executer(const char* mode, const char* filePath, const char *registFileName
         }
 
     }
-    regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "0");
+    //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "0");
 }
 
 int main(int argc, char* argv[], char* envp[]) {
+
+    nArgs = argc;
+    copyArgv(argv, arguments, nArgs);
     
     const char * registFileName = initRegister(); 
     clock_t initialTime = clock();

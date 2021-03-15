@@ -1,3 +1,6 @@
+<<<<<<< HEAD
 0.071000 ; 33470 ; FILE_MODF ; testDir : 0777 : 0777
 0.240000 ; 33470 ; FILE_MODF ; testDir/testfile3.txt : 0777 : 0777
 0.272000 ; 33470 ; PROC_EXIT ; 0
+=======
+>>>>>>> 6c32a295d83dda1b0268b8e3b8526cef1417467d
