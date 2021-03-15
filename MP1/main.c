@@ -7,20 +7,26 @@
 
 extern int errno;
 
-Options options;
-
-int noFilesFound;
-int noFilesChanged;
 typedef struct {
     char** arguments;
     int nArgs;
-} arguments;
-char* arguments[];
-int nArgs;
+    int fileNameIndex;
+} Arguments;
+
+typedef struct {
+    Options options;
+    int noFilesFound;
+    int noFilesChanged;
+    Arguments args;
+    char* filePath;
+    char* modeString;
+} ProcessInfo;
+
+ProcessInfo* pInfo;
 
 //BIGGER FUNCS
-void parse(char* arguments[], int nArgs, char** filePath, char** mode, int *index); //Parses arguments
-void executer(const char* mode, const char* filePath, const char * registFileName, const clock_t initialTime, const char** argv, const int numArgs); //Recursive funtion
+void parse(); //Parses arguments
+void executer(char* fileName); //Recursive funtion
 
 //AUXILIARY FUNCS
 void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode); //Verbose messages
@@ -42,7 +48,7 @@ double getMiliSeconds(clock_t initialTime){
 }
 
 void sigHandler(int signo) {
-    printf("\nPID:%d FILEPATH: NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), noFilesFound, noFilesChanged);
+    printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
     exit(1);
 }
 
@@ -63,12 +69,6 @@ void setUpSigHandler() {
 }
 
 /*
-void handleNewProcess(char* filePath, char* mode) {
-    setUpSigHandler();
-    executer(mode, filePath);
-}*/
-
-
 char* initRegister(){
     char *filename = getenv("LOG_FILENAME");
     if(filename == NULL) printf("Environment variable Error \n");
@@ -94,7 +94,7 @@ void regitExecution(const char* filename, double time, pid_t pid, char* event, c
     fputs("\n",file);
     if(fclose(file) != 0) printf("Error closing register file \n"); 
 }
-
+*/
 
 bool isDirectory(const char* pathname) { //Checks if the path is a directory, returns true if it is else it's a file
 
@@ -171,9 +171,9 @@ char* fourDigitOctal(mode_t mode){ //adds zeros, example input: 777-> return: "0
 void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode) { 
     char* oldPermissions = fromOctalToString(oldMode), *newPermissions = fromOctalToString(newMode); 
 
-    if(checkChanges(oldMode, newMode) && (options.vflag == V || options.vflag == C))
+    if(checkChanges(oldMode, newMode) && (pInfo->options.vflag == V || pInfo->options.vflag == C))
         printf("mode of '%s' changed from %s (%s) to %s (%s)\n",filePath, fourDigitOctal(oldMode), oldPermissions, fourDigitOctal(newMode), newPermissions);
-    else if(!checkChanges(oldMode,newMode) && options.vflag == V)
+    else if(!checkChanges(oldMode,newMode) && pInfo->options.vflag == V)
         printf("mode of '%s' retained as %s (%s)\n",filePath, fourDigitOctal(oldMode), oldPermissions);
 }
 
@@ -188,34 +188,39 @@ bool checkChanges(const mode_t oldMode, const mode_t newMode) {
     else return true;
 }
 
-void parse(char* arguments[], int nArgs, char** filePath, char** mode, int *index) { 
+void parse() { 
 
     bool isMode = true;
  
     //PARSE
-    for (unsigned int i = 1; i < nArgs; i++) {
-        if (arguments[i][0] == '-') {
-            for (unsigned int j = 0; j < strlen(arguments[i]); j++)
-                processOption(arguments[i][j], &options);
+    for (unsigned int i = 1; i < pInfo->args.nArgs; i++) {
+        if (pInfo->args.arguments[i][0] == '-') {
+            for (unsigned int j = 0; j < strlen(pInfo->args.arguments[i]); j++)
+                processOption(pInfo->args.arguments[i][j], &pInfo->options);
         }
         else if (isMode) {
-            *mode = arguments[i];
+            pInfo->modeString = pInfo->args.arguments[i];
             isMode = false;
         }
         else {
-            *filePath = arguments[i];  
-            *index = i;
+            pInfo->filePath = pInfo->args.arguments[i];  
+            pInfo->args.fileNameIndex = i;
         }    
     }    
 }
 
-void copyArgv(char* argv[], char* newArgs[], int argc) {
-    for (unsigned int i = 0; i < nArgs; i++) {
-        arguments[i] = argv[i];
+void makeNewArgs(char* newArgs[], char* fileName) {
+    for (unsigned int i = 0; i <= pInfo->args.nArgs; i++) {
+        if (i == pInfo->args.fileNameIndex)
+            newArgs[i] = fileName;
+        else    
+            newArgs[i] = pInfo->args.arguments[i];
+        if (i == pInfo->args.nArgs)
+            newArgs[i] = NULL;
     }
 }
 
-void executer(const char* mode, const char* filePath, const char *registFileName, const clock_t initialTime) { //IMPLEMENTING...
+void executer(char* filePath) { //IMPLEMENTING...
 
 
     mode_t oldMode;
@@ -224,18 +229,18 @@ void executer(const char* mode, const char* filePath, const char *registFileName
     struct dirent *entry;
 
     if (checkFile(filePath) != 0) {
-        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
+        //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
         fprintf(stderr, "File name wrong: %s", strerror(errno));
         exit(1);
     }
     else 
-        noFilesFound++;
+        pInfo->noFilesFound++;
 
     oldMode = getFilePermissions(filePath);
-    newMode = getModeNum(mode, filePath, oldMode);
+    newMode = getModeNum(pInfo->modeString, filePath, oldMode);
 
     if (chmod(filePath, newMode) != 0) {
-        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
+        //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
         fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
         exit(1);
     }
@@ -244,15 +249,15 @@ void executer(const char* mode, const char* filePath, const char *registFileName
         /* char info[strlen(filePath)+8+6+1];  //Nao funciona n percebo pq....
         sprintf(info,"%s : %s : %s",filePath,fourDigitOctal(oldMode),fourDigitOctal(newMode));
         regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "FILE_MODF", info); */
-        noFilesChanged++;
+        pInfo->noFilesChanged++;
         diagnosticPrint(filePath, oldMode, newMode);
     }
     
-    if (options.recursive && isDirectory(filePath)) { //Verifica se é um directorio
+    if (pInfo->options.recursive && isDirectory(filePath)) { //Verifica se é um directorio
 
         if ((dir = opendir (filePath)) == NULL) {
             fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
-            regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
+            //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
             exit(1);
         }
 
@@ -267,7 +272,7 @@ void executer(const char* mode, const char* filePath, const char *registFileName
 
                 //VERIFY IF IT IS A DIRECTORY
                 if (entry->d_type != DT_DIR) {
-                    executer(mode, newPath, registFileName, initialTime, argv, numArgs);
+                    executer(newPath);
                     continue;
                 }
                 
@@ -275,17 +280,19 @@ void executer(const char* mode, const char* filePath, const char *registFileName
                 switch (id) {
                     case 0: {
                         //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_CREAT" , "GET INFO!!!");
-                        /*noFilesChanged = 0;
-                        noFilesFound = 0;
-
-                        char* args[nArgs];
-                        copyArgv(arguments, args, nArgs);
-                        if (execvp("main.exe", args) == -1) {
-                            fprintf(stderr, "Error executing main.exe:%s", strerror(errno));
+                        pInfo->noFilesChanged = 0;
+                        pInfo->noFilesFound = 0;
+                        
+                        char* args[pInfo->args.nArgs + 1];
+                        makeNewArgs(args, newPath);
+                        printf("New file path:%s\n", args[pInfo->args.fileNameIndex]);
+                        
+                        if (execvp("/home/marhc/Documents/SOPE/FEUP-SOPE/MP1/main.exe", args) == -1) {
+                            fprintf(stderr, "Error with execvpe: %s", strerror(errno));
                             exit(1);
                         }
                         sleep(20);
-                        break;*/
+                        break;
                     }
                     case -1:{
                         fprintf(stderr, "Error with fork:%s\n", strerror(errno));
@@ -306,28 +313,32 @@ void executer(const char* mode, const char* filePath, const char *registFileName
     //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "0");
 }
 
-int main(int argc, char* argv[], char* envp[]) {
+int main(int argc, char* argv[], char* envp[]) {;
+    
 
-    nArgs = argc;
-    copyArgv(argv, arguments, nArgs);
+    printf("%s", getenv("PATH"));
+    exit(0);
+
+
+    //const char * registFileName = initRegister(); 
+    //clock_t initialTime = clock();
+    pInfo = (ProcessInfo*) malloc(sizeof(ProcessInfo));
+
+    pInfo->noFilesChanged = 0;
+    pInfo->noFilesFound = 0;
+    pInfo->args.arguments = argv;
+    pInfo->args.nArgs = argc;
     
-    const char * registFileName = initRegister(); 
-    clock_t initialTime = clock();
-    
-    setUpSigHandler(registFileName, initialTime);
-    //Variables
-    char* filePath = "";
-    char* mode = "";
-    int index;
+    setUpSigHandler();
+
     //Parse
-    parse(argv, argc, &filePath, &mode, &index);
+    parse();
 
-    noFilesChanged = 0;
-    noFilesFound = 0;
 
     //Recursive function
-    executer(mode, filePath,registFileName, initialTime, argv, argc);
+    executer(pInfo->filePath);
     sleep(10);
+    free(pInfo);
 
     return 0;
 }
