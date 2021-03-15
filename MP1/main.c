@@ -67,9 +67,9 @@ char* initRegister(){
     return filename;
 }
 
-double getSeconds(clock_t initialTime){
+double getMiliSeconds(clock_t initialTime){
     clock_t actualTime = clock();
-    return (actualTime-initialTime)/(CLOCKS_PER_SEC/1000);
+    return (double)(actualTime-initialTime)/(CLOCKS_PER_SEC/1000);
 }
 
 void regitExecution(const char* filename, double time, pid_t pid, char* event, char* info){
@@ -248,6 +248,7 @@ void executer(const char* mode, const char* filePath, const char *registFileName
                 int id = fork();
                 switch (id) {
                     case 0: {
+                        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_CREAT" , "GET INFO!!!");
                         noFilesChanged = 0;
                         noFilesFound = 0;
                         executer(mode, newPath, registFileName, initialTime);
@@ -268,8 +269,8 @@ void executer(const char* mode, const char* filePath, const char *registFileName
         }
 
     }
-    sleep(3);
-    regitExecution(registFileName, getSeconds(initialTime), getpid(), "PROC_EXIT",  "sofi");
+    sleep(8);
+    regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "0");
 }
 
 int main(int argc, char* argv[], char* envp[]) {
