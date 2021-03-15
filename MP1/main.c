@@ -11,6 +11,12 @@ Options options;
 
 int noFilesFound;
 int noFilesChanged;
+typedef struct {
+    char** arguments;
+    int nArgs;
+} arguments;
+char* arguments[];
+int nArgs;
 
 //BIGGER FUNCS
 void parse(char* arguments[], int nArgs, char** filePath, char** mode); //Parses arguments
@@ -200,6 +206,12 @@ void parse(char* arguments[], int nArgs, char** filePath, char** mode) {
     }    
 }
 
+void copyArgv(char* argv[], char* newArgs[], int argc) {
+    for (unsigned int i = 0; i < nArgs; i++) {
+        arguments[i] = argv[i];
+    }
+}
+
 void executer(const char* mode, const char* filePath, const char *registFileName, const clock_t initialTime) { //IMPLEMENTING...
 
     mode_t oldMode;
@@ -257,16 +269,21 @@ void executer(const char* mode, const char* filePath, const char *registFileName
                 int id = fork();
                 switch (id) {
                     case 0: {
-                        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_CREAT" , "GET INFO!!!");
-                        noFilesChanged = 0;
+                        //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_CREAT" , "GET INFO!!!");
+                        /*noFilesChanged = 0;
                         noFilesFound = 0;
-                        executer(mode, newPath, registFileName, initialTime);
+                        char* args[nArgs];
+                        copyArgv(arguments, args, nArgs);
+                        if (execvp("main.exe", args) == -1) {
+                            fprintf(stderr, "Error executing main.exe:%s", strerror(errno));
+                            exit(1);
+                        }
                         sleep(20);
-                        break;
+                        break;*/
                     }
                     case -1:{
                         fprintf(stderr, "Error with fork:%s\n", strerror(errno));
-                        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
+                        //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
                         exit(1);
                     }
                     default: {
@@ -274,15 +291,19 @@ void executer(const char* mode, const char* filePath, const char *registFileName
                         break;
                     }
                 }
+                free(newPath);
 
             }               
         }
 
     }
-    regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "0");
+    //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "0");
 }
 
 int main(int argc, char* argv[], char* envp[]) {
+
+    nArgs = argc;
+    copyArgv(argv, arguments, nArgs);
     
     const char * registFileName = initRegister(); 
     clock_t initialTime = clock();
