@@ -2,6 +2,7 @@
 #include <signal.h>
 #include "modes.h"
 #include "options.h"
+#include "time.h"
 
 extern int errno;
 
@@ -12,7 +13,7 @@ int noFilesChanged;
 
 //BIGGER FUNCS
 void parse(char* arguments[], int nArgs, char** filePath, char** mode); //Parses arguments
-void executer(const char* mode, const char* filePath); //Recursive funtion
+void executer(const char* mode, const char* filePath, const char * registerFileName, const clock_t initialTime); //Recursive funtion
 
 //AUXILIARY FUNCS
 void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode); //Verbose messages
@@ -47,12 +48,11 @@ void setUpSigHandler() {
     }
 }
 
+/*
 void handleNewProcess(char* filePath, char* mode) {
-
-
     setUpSigHandler();
     executer(mode, filePath);
-}
+}*/
 
 
 char* initRegister(){
@@ -67,7 +67,12 @@ char* initRegister(){
     return filename;
 }
 
-void regitExecution(char* filename, double time, pid_t pid, char* event, char* info){
+double getSeconds(clock_t initialTime){
+    clock_t actualTime = clock();
+    return (actualTime-initialTime)/(CLOCKS_PER_SEC/1000);
+}
+
+void regitExecution(const char* filename, double time, pid_t pid, char* event, char* info){
     const char * mode = "a";
     FILE *file = fopen(filename, mode);
     fprintf(file, "%f", time);
@@ -192,7 +197,7 @@ void parse(char* arguments[], int nArgs, char** filePath, char** mode) {
     }    
 }
 
-void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
+void executer(const char* mode, const char* filePath, const char *registFileName, const clock_t initialTime) { //IMPLEMENTING...
 
     mode_t oldMode;
     mode_t newMode;
@@ -236,7 +241,7 @@ void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
 
                 //VERIFY IF IT IS A DIRECTORY
                 if (entry->d_type != DT_DIR) {
-                    executer(mode, newPath);
+                    executer(mode, newPath, registFileName, initialTime);
                     continue;
                 }
                 
@@ -245,7 +250,7 @@ void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
                     case 0: {
                         noFilesChanged = 0;
                         noFilesFound = 0;
-                        executer(mode, newPath);
+                        executer(mode, newPath, registFileName, initialTime);
                         sleep(20);
                         break;
                     }
@@ -263,15 +268,20 @@ void executer(const char* mode, const char* filePath) { //IMPLEMENTING...
         }
 
     }
+    sleep(3);
+    regitExecution(registFileName, getSeconds(initialTime), getpid(), "PROC_EXIT",  "sofi");
 }
 
 int main(int argc, char* argv[], char* envp[]) {
+    
+    const char * registFileName = initRegister(); 
+    clock_t initialTime = clock();
     
     setUpSigHandler();
     //Variables
     char* filePath = "";
     char* mode = "";
-    
+
     //Parse
     parse(argv, argc, &filePath, &mode);
 
@@ -280,9 +290,8 @@ int main(int argc, char* argv[], char* envp[]) {
     noFilesFound = 0;
 
     //Recursive function
-    executer(mode, filePath);  
+    executer(mode, filePath,registFileName, initialTime);
     sleep(10);
-    
 
     return 0;
 }
