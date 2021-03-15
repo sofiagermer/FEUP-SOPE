@@ -148,3 +148,15 @@ mode_t convert(int octal) {
 
     return decimal;
 }
+
+mode_t getFilePermissions(const char *path) {
+    struct stat mode;
+
+    if (stat(path, &mode) == -1) {
+        return -1;
+    }
+
+    int m = mode.st_mode;
+    m &= 0x00fff;
+    return m;
+}
