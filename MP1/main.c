@@ -224,9 +224,9 @@ void executer(const char* mode, const char* filePath, const char *registFileName
         exit(1);
     }
     else {
-        char info[strlen(filePath)+8+6+1];
+        /* char info[strlen(filePath)+8+6+1];  //Nao funciona n percebo pq....
         sprintf(info,"%s : %s : %s",filePath,fourDigitOctal(oldMode),fourDigitOctal(newMode));
-        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "FILE_MODF", info);
+        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "FILE_MODF", info); */
         noFilesChanged++;
         diagnosticPrint(filePath, oldMode, newMode);
     }
