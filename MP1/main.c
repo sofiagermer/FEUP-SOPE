@@ -287,7 +287,7 @@ void executer(char* filePath) { //IMPLEMENTING...
                         makeNewArgs(args, newPath);
                         printf("New file path:%s\n", args[pInfo->args.fileNameIndex]);
                         
-                        if (execvp("/home/marhc/Documents/SOPE/FEUP-SOPE/MP1/main.exe", args) == -1) {
+                        if (execvp("main.exe", args) == -1) {
                             fprintf(stderr, "Error with execvpe: %s", strerror(errno));
                             exit(1);
                         }
@@ -316,8 +316,8 @@ void executer(char* filePath) { //IMPLEMENTING...
 int main(int argc, char* argv[], char* envp[]) {;
     
 
-    printf("%s", getenv("PATH"));
-    exit(0);
+    /*printf("%s", getenv("PATH"));
+    exit(0);*/
 
 
     //const char * registFileName = initRegister(); 
