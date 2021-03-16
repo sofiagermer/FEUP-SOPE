@@ -72,8 +72,7 @@ void initRegister(clock_t time){
         setenv("firstRun",timeString,1);
         //Opens a text file for both reading and writing. 
         //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.
-        const char * mode = "w+";
-        FILE *file = fopen(filename, mode);
+        FILE *file = fopen(filename, "w+");
         if(fclose(file) != 0) printf("Error closing register file \n");
     }
 }
@@ -84,10 +83,9 @@ void regitExecution( pid_t pid, char* event, char* info){
         printf("Environment variable Error \n");
         return;
     }
-    const char *mode = "a";
     int initialTime=atoi(getenv("firstRun"));
     double time=getMiliSeconds(initialTime);
-    FILE *file = fopen(filename, mode);
+    FILE *file = fopen(filename, "a");
     fprintf(file, "%f", time);
     fputs(" ; ", file);
     fprintf(file, "%d", pid);
@@ -143,7 +141,7 @@ void executer(char* filePath) {
     newMode = getModeNum(pInfo->modeString, filePath, oldMode);
 
     if (access(filePath, F_OK) == -1) {
-        regitExecution( getpid(), "PROC_EXIT",  "1");
+        //regitExecution( getpid(), "PROC_EXIT",  "1");
         fprintf(stderr, "File name wrong: %s", strerror(errno));
         exit(1);
     }
@@ -157,10 +155,13 @@ void executer(char* filePath) {
         exit(1);
     }
     else {
-
-        /* char info[strlen(filePath)+8+6+1];  //Nao funciona n percebo pq....
-        sprintf(info,"%s : %s : %s",filePath,fourDigitOctal(oldMode),fourDigitOctal(newMode));
-        regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "FILE_MODF", info); */
+        /* char* fourDigitOldMode=(char*)malloc(sizeof(oldMode));
+        fourDigitOctal(oldMode,fourDigitOldMode);
+        char* fourDigitNewMode=(char*)malloc(sizeof(newMode));
+        fourDigitOctal(oldMode,fourDigitNewMode);
+        char *info=(char*)malloc(strlen(filePath)+strlen(fourDigitOldMode)+strlen(fourDigitNewMode)+100);  //Nao funciona n percebo pq....
+        sprintf(info,"%s : %s : %s",filePath,fourDigitOldMode,fourDigitNewMode);
+        regitExecution(getpid(), "FILE_MODF", info); */
         pInfo->noFilesChanged++;
         diagnosticPrint(filePath, oldMode, newMode, pInfo->options);
     }
@@ -169,7 +170,7 @@ void executer(char* filePath) {
 
         if ((dir = opendir (filePath)) == NULL) {
             fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
-            //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
+            regitExecution(getpid(), "PROC_EXIT",  "1");
             exit(1);
         }
 
@@ -178,7 +179,7 @@ void executer(char* filePath) {
 
                 //NEW FILE
                 char* newPath = (char*) malloc(strlen(entry->d_name) + 1 + strlen(filePath));
-                strcat(newPath,filePath);
+                strcpy(newPath,filePath);
                 strcat(newPath,"/");
                 strcat(newPath,entry->d_name);
 
@@ -191,7 +192,7 @@ void executer(char* filePath) {
                 int id = fork();
                 switch (id) {
                     case 0: {
-                        //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_CREAT" , "GET INFO!!!");
+                        regitExecution(getpid(), "PROC_CREAT" , "GET INFO!!!");
                         char* args[pInfo->args.nArgs + 1];
                         makeNewArgs(args, newPath);
                         
@@ -203,7 +204,7 @@ void executer(char* filePath) {
                     }
                     case -1:{
                         fprintf(stderr, "Error with fork:%s\n", strerror(errno));
-                        //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
+                        regitExecution(getpid(), "PROC_EXIT",  "1");
                         exit(1);
                     }
                     default: {
@@ -217,7 +218,7 @@ void executer(char* filePath) {
         }
 
     }
-   //regitExecution(getpid(), "PROC_EXIT",  "0");
+   regitExecution(getpid(), "PROC_EXIT",  "0");
 }
 
 void initializeProcess(char* argv[], int argc) {
@@ -232,9 +233,12 @@ void initializeProcess(char* argv[], int argc) {
 }
 
 void endProgram() {
-    printf("end of program \n");
-    unsetenv("firstRun");
-    unsetenv("ORIGIN_PID");
+    char charPid[strlen(getenv("ORIGIN_PID"))]; 
+    sprintf(charPid,"%d",getpid());
+    if(strcmp(charPid, getenv("ORIGIN_PID")) == 0){
+        unsetenv("firstRun");
+        unsetenv("ORIGIN_PID");
+    }
     free(pInfo);
 }
 
@@ -244,8 +248,6 @@ int main(int argc, char* argv[], char* envp[]) {
 
     if(!getenv("firstRun")){
         initRegister(time);
-    }
-    if(!getenv("ORIGIN_PID")){
         char charPid[10]; 
         sprintf(charPid,"%d",getpid());
         setenv("ORIGIN_PID", charPid,1);
@@ -262,9 +264,7 @@ int main(int argc, char* argv[], char* envp[]) {
     
     wait(NULL); //Waits for child processes to finish
     //("pid : %d \n", getpid());
-    char charPid[strlen(getenv("ORIGIN_PID"))]; 
-    sprintf(charPid,"%d",getpid());
-    if(strcmp(charPid, getenv("ORIGIN_PID")) == 0) endProgram();
+    endProgram();
     
 
     return 0;

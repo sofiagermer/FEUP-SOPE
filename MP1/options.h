@@ -14,11 +14,11 @@ typedef struct {
     bool recursive;
 } Options;
 
-void diagnosticPrint(const char* filePath, const mode_t oldMode, const mode_t newMode, Options options); //Verbose messages
+void diagnosticPrint(const char* filePath, mode_t oldMode, mode_t newMode, Options options); //Verbose messages
 void processOption(const char optFlag, Options* options); //Processes an option
 int get_bit(int bits, int pos);
-char* fromOctalToString(mode_t mode); //Converts mode to a string to be printed
-char* fourDigitOctal(mode_t mode);
+void fromOctalToString(mode_t mode,char* permissions); //Converts mode to a string to be printed
+void fourDigitOctal(mode_t mode,char *str);
 bool checkChanges(const mode_t oldMode, const mode_t newMode); //Checks if there were changes
 
 #endif //OPTIONS_H
