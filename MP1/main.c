@@ -217,7 +217,6 @@ void executer(char* filePath) {
         }
 
     }
-    printf("%s \n", getenv("ORIGIN_PID"));
    //regitExecution(getpid(), "PROC_EXIT",  "0");
 }
 
@@ -232,11 +231,10 @@ void initializeProcess(char* argv[], int argc) {
     setUpSigHandler();
 }
 
-void endProgram(char *charPID) {
-    if(strcmp(charPID, getenv("ORIGIN_PID"))){
-        printf("oi cara cheguei ao fim \n");
-        //unsetenv("firstRun");
-    }
+void endProgram() {
+    printf("end of program \n");
+    unsetenv("firstRun");
+    unsetenv("ORIGIN_PID");
     free(pInfo);
 }
 
@@ -261,10 +259,13 @@ int main(int argc, char* argv[], char* envp[]) {
 
     //Recursive function
     executer(pInfo->filePath);
+    
     wait(NULL); //Waits for child processes to finish
-    char charPid[10]; 
+    //("pid : %d \n", getpid());
+    char charPid[strlen(getenv("ORIGIN_PID"))]; 
     sprintf(charPid,"%d",getpid());
-    endProgram(charPid);
+    if(strcmp(charPid, getenv("ORIGIN_PID")) == 0) endProgram();
+    
 
     return 0;
 }
