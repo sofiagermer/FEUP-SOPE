@@ -4,6 +4,7 @@
 #include "utils.h"
 #include <time.h>
 #include<sys/wait.h>
+#include <string.h>
 
 extern int errno;
 
@@ -27,10 +28,11 @@ void executer(char* fileName); //Recursive funtion
 void sigHandler(int signo); //Handles ctrlC
 void setUpSigHandler(); //Set up the signal handling
 double getMiliSeconds(clock_t initialTime); //Returns time in miliseconds since initialTime
-void regitExecution(const char* filename, double time, pid_t pid, char* event, char* info); // Writes on execution register
+void regitExecution(pid_t pid, char* event, char* info); // Writes on execution register
 void endProgram(); //To kill everything
 void initializeProcess(char* argv[], int argc); //To initialize the struct and define signal handlers
 void makeNewArgs(char* newArgs[], char* fileName); //To fabricate the arguments for the new process
+void initRegister();
 
 double getMiliSeconds(clock_t initialTime){
     clock_t actualTime = clock();
@@ -58,21 +60,34 @@ void setUpSigHandler() {
     }
 }
 
-/*
-char* initRegister(){
-    char *filename = getenv("LOG_FILENAME");
-    if(filename == NULL) printf("Environment variable Error \n");
-    //Opens a text file for both reading and writing. 
-    //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.
-    const char * mode = "w+";
-    FILE *file = fopen(filename, mode);
-    
-    if(fclose(file) != 0) printf("Error closing register file \n"); 
-    return filename;
+
+void initRegister(clock_t time){
+    char* filename=getenv("LOG_FILENAME");
+    if(filename == NULL) {
+        printf("Environment variable Error \n");
+    }
+    else{
+        char timeString[20];
+        sprintf(timeString,"%ld",time);
+        setenv("firstRun",timeString,1);
+        //Opens a text file for both reading and writing. 
+        //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.
+        const char * mode = "w+";
+        FILE *file = fopen(filename, mode);
+        if(fclose(file) != 0) printf("Error closing register file \n");
+    }
+    //free(filename);
 }
 
-void regitExecution(const char* filename, double time, pid_t pid, char* event, char* info){
-    const char * mode = "a";
+void regitExecution( pid_t pid, char* event, char* info){
+    char* filename=getenv("LOG_FILENAME");
+    if(filename == NULL) {
+        printf("Environment variable Error \n");
+        return;
+    }
+    const char *mode = "a";
+    int initialTime=atoi(getenv("firstRun"));
+    double time=getMiliSeconds(initialTime);
     FILE *file = fopen(filename, mode);
     fprintf(file, "%f", time);
     fputs(" ; ", file);
@@ -82,9 +97,9 @@ void regitExecution(const char* filename, double time, pid_t pid, char* event, c
     fputs(" ; ", file);
     fputs(info, file);
     fputs("\n",file);
-    if(fclose(file) != 0) printf("Error closing register file \n"); 
+    if(fclose(file) != 0) printf("Error closing register file \n");
 }
-*/
+
 
 void parse() { 
 
@@ -129,7 +144,7 @@ void executer(char* filePath) {
     newMode = getModeNum(pInfo->modeString, filePath, oldMode);
 
     if (access(filePath, F_OK) == -1) {
-        //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
+        regitExecution( getpid(), "PROC_EXIT",  "1");
         fprintf(stderr, "File name wrong: %s", strerror(errno));
         exit(1);
     }
@@ -204,7 +219,7 @@ void executer(char* filePath) {
         }
 
     }
-    //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "0");
+    regitExecution(getpid(), "PROC_EXIT",  "0");
 }
 
 void initializeProcess(char* argv[], int argc) {
@@ -219,14 +234,18 @@ void initializeProcess(char* argv[], int argc) {
 }
 
 void endProgram() {
+    setenv("firstRun", NULL, 1);
     free(pInfo);
 }
 
 int main(int argc, char* argv[], char* envp[]) {
 
+    clock_t time = clock();
 
+    if(!getenv("firstRun")){
+        initRegister(time);
+    }
     //const char * registFileName = initRegister(); 
-    //clock_t initialTime = clock();
     
     //Initialize Process
     initializeProcess(argv, argc);
