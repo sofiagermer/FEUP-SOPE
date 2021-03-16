@@ -3,6 +3,7 @@
 #include "options.h"
 #include "utils.h"
 #include <time.h>
+#include<sys/wait.h>
 
 extern int errno;
 
@@ -236,7 +237,9 @@ int main(int argc, char* argv[], char* envp[]) {
 
     //Recursive function
     executer(pInfo->filePath);
-    while(1) sleep(1);
+
+    wait(NULL); //Waits for child processes to finish
+
     endProgram();
 
     return 0;
