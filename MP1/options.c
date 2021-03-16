@@ -45,14 +45,14 @@ void fromOctalToString(mode_t mode,char* permissions) { //converts Octal to a st
 void fourDigitOctal(mode_t mode,char *str){ //adds zeros, example input: 777-> return: "0777"
     char *aux;
     if(mode<=7){ // in Octal -> 0007
-        aux=(char*)malloc(sizeof(mode));
+        aux=(char*)malloc(sizeof(5));
         char zeros[]="000";
         sprintf(aux, "%o", mode);
         strcat(str,zeros);
         strcat(str,aux);
     }
     else if(mode<=63){ // in Octal -> 0070
-        aux=(char*)malloc(sizeof(mode));
+        aux=(char*)malloc(sizeof(5));
         char zeros[]="00";
         sprintf(aux, "%o", mode);
         strcat(str,zeros);
@@ -60,13 +60,12 @@ void fourDigitOctal(mode_t mode,char *str){ //adds zeros, example input: 777-> r
     }
     else{
         
-        aux=(char*)malloc(sizeof(mode));
+        aux=(char*)malloc(5);
         char zeros[]="0";
         sprintf(aux, "%o", mode);
         strcat(str,zeros);
         strcat(str,aux);
     }
-    free(aux);
 }
 
 void diagnosticPrint(const char* filePath, mode_t oldMode,mode_t newMode, Options options) { 
@@ -82,7 +81,6 @@ void diagnosticPrint(const char* filePath, mode_t oldMode,mode_t newMode, Option
         printf("mode of '%s' changed from %s (%s) to %s (%s)\n",filePath, oldPermsFourDigit, oldPermissions, newPermsFourDigit, newPermissions);
     else if(!checkChanges(oldMode,newMode) && options.vflag == V)
         printf("mode of '%s' retained as %s (%s)\n",filePath, oldPermsFourDigit, oldPermissions);
-    
 }
 
 bool checkChanges(const mode_t oldMode, const mode_t newMode) {

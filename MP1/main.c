@@ -4,6 +4,7 @@
 #include "utils.h"
 #include <time.h>
 #include<sys/wait.h>
+#include <stdlib.h>
 #include <string.h>
 
 extern int errno;
@@ -28,7 +29,7 @@ void executer(char* fileName); //Recursive funtion
 void sigHandler(int signo); //Handles ctrlC
 void setUpSigHandler(); //Set up the signal handling
 double getMiliSeconds(clock_t initialTime); //Returns time in miliseconds since initialTime
-void regitExecution(pid_t pid, char* event, char* info); // Writes on execution register
+bool regitExecution(pid_t pid, char* event, char* info); // Writes on execution register
 void endProgram(); //To kill everything
 void initializeProcess(char* argv[], int argc); //To initialize the struct and define signal handlers
 void makeNewArgs(char* newArgs[], char* fileName); //To fabricate the arguments for the new process
@@ -40,8 +41,23 @@ double getMiliSeconds(clock_t initialTime){
 }
 
 void sigHandler(int signo) {
+    char charPID[7];
+    sprintf(charPID,"%d",getpid());
+    char answer[2];
     printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
-    exit(1);
+    while(1){
+        if(strcmp(getenv("ORIGIN_PID"),charPID)){
+            printf("\nDO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)\n");
+            scanf("%s", answer);
+            if(strcmp(answer,"y")){
+                //funçaozinha
+            }
+            else{
+                //exit(1);
+            }
+        }
+    }
+    
 }
 
 void setUpSigHandler() {
@@ -77,24 +93,20 @@ void initRegister(clock_t time){
     }
 }
 
-void regitExecution( pid_t pid, char* event, char* info){
+bool regitExecution( pid_t pid, char* event, char* info){
     char* filename=getenv("LOG_FILENAME");
     if(filename == NULL) {
         printf("Environment variable Error \n");
-        return;
+        return false;
     }
     int initialTime=atoi(getenv("firstRun"));
     double time=getMiliSeconds(initialTime);
     FILE *file = fopen(filename, "a");
-    fprintf(file, "%f", time);
-    fputs(" ; ", file);
-    fprintf(file, "%d", pid);
-    fputs(" ; ", file);
-    fputs(event, file);
-    fputs(" ; ", file);
-    fputs(info, file);
-    fputs("\n",file);
+    char newBuffer[300];
+    setvbuf(file,newBuffer,_IOLBF,300);
+    fprintf(file,"%f ; %d ; %s ; %s\n",time,pid,event,info);
     if(fclose(file) != 0) printf("Error closing register file \n");
+    return true;
 }
 
 
@@ -141,7 +153,7 @@ void executer(char* filePath) {
     newMode = getModeNum(pInfo->modeString, filePath, oldMode);
 
     if (access(filePath, F_OK) == -1) {
-        //regitExecution( getpid(), "PROC_EXIT",  "1");
+        regitExecution( getpid(), "PROC_EXIT",  "1");
         fprintf(stderr, "File name wrong: %s", strerror(errno));
         exit(1);
     }
@@ -150,20 +162,24 @@ void executer(char* filePath) {
 
 
     if (chmod(filePath, newMode) != 0) {
-        //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_EXIT",  "1");
+        regitExecution(getpid(), "PROC_EXIT",  "1");
         fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
         exit(1);
     }
     else {
-        /* char* fourDigitOldMode=(char*)malloc(sizeof(oldMode));
+        char* fourDigitOldMode=(char*)malloc(sizeof(oldMode));
         fourDigitOctal(oldMode,fourDigitOldMode);
         char* fourDigitNewMode=(char*)malloc(sizeof(newMode));
-        fourDigitOctal(oldMode,fourDigitNewMode);
-        char *info=(char*)malloc(strlen(filePath)+strlen(fourDigitOldMode)+strlen(fourDigitNewMode)+100);  //Nao funciona n percebo pq....
-        sprintf(info,"%s : %s : %s",filePath,fourDigitOldMode,fourDigitNewMode);
-        regitExecution(getpid(), "FILE_MODF", info); */
+        fourDigitOctal(newMode,fourDigitNewMode);
+        char *info=(char*)malloc(strlen(filePath)+strlen(fourDigitOldMode)+strlen(fourDigitNewMode)+100);  //Nao funciona n percebo pq.... 
+        strcpy(info,filePath);
+        strcat(info," : ");
+        strcat(info,fourDigitOldMode);
+        strcat(info," : ");
+        strcat(info,fourDigitNewMode); 
+        regitExecution(getpid(), "FILE_MODF", info); 
+        diagnosticPrint(filePath, oldMode, newMode, pInfo->options); 
         pInfo->noFilesChanged++;
-        diagnosticPrint(filePath, oldMode, newMode, pInfo->options);
     }
     
     if (pInfo->options.recursive && isDirectory(filePath)) { //Verifica se é um directorio
@@ -189,6 +205,11 @@ void executer(char* filePath) {
                     continue;
                 }
                 
+                regitExecution(getpid(), "PROC_CREAT" , "GET INFO!!!");
+                char* args[pInfo->args.nArgs + 1];
+                makeNewArgs(args, newPath);
+                
+
                 int id = fork();
                 switch (id) {
                     case 0: {
@@ -239,6 +260,7 @@ void endProgram() {
         unsetenv("firstRun");
         unsetenv("ORIGIN_PID");
     }
+    
     free(pInfo);
 }
 
@@ -258,12 +280,13 @@ int main(int argc, char* argv[], char* envp[]) {
 
     //Parse
     parse();
-
+    printf("%d\n",getpid());
     //Recursive function
     executer(pInfo->filePath);
     
-    wait(NULL); //Waits for child processes to finish
+    /* wait(NULL); */ //Waits for child processes to finish
     //("pid : %d \n", getpid());
+    while(1) sleep(1);
     endProgram();
     
 
