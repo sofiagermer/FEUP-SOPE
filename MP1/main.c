@@ -62,7 +62,7 @@ void setUpSigHandler() {
 
 
 void initRegister(clock_t time){
-    char* filename=getenv("LOG_FILENAME");
+    char *filename=getenv("LOG_FILENAME");
     if(filename == NULL) {
         printf("Environment variable Error \n");
     }
@@ -76,7 +76,6 @@ void initRegister(clock_t time){
         FILE *file = fopen(filename, mode);
         if(fclose(file) != 0) printf("Error closing register file \n");
     }
-    //free(filename);
 }
 
 void regitExecution( pid_t pid, char* event, char* info){
@@ -193,7 +192,6 @@ void executer(char* filePath) {
                 switch (id) {
                     case 0: {
                         //regitExecution(registFileName, getMiliSeconds(initialTime), getpid(), "PROC_CREAT" , "GET INFO!!!");
-                        
                         char* args[pInfo->args.nArgs + 1];
                         makeNewArgs(args, newPath);
                         
@@ -219,7 +217,8 @@ void executer(char* filePath) {
         }
 
     }
-    regitExecution(getpid(), "PROC_EXIT",  "0");
+    printf("%s \n", getenv("ORIGIN_PID"));
+   //regitExecution(getpid(), "PROC_EXIT",  "0");
 }
 
 void initializeProcess(char* argv[], int argc) {
@@ -233,8 +232,11 @@ void initializeProcess(char* argv[], int argc) {
     setUpSigHandler();
 }
 
-void endProgram() {
-    setenv("firstRun", NULL, 1);
+void endProgram(char *charPID) {
+    if(strcmp(charPID, getenv("ORIGIN_PID"))){
+        printf("oi cara cheguei ao fim \n");
+        //unsetenv("firstRun");
+    }
     free(pInfo);
 }
 
@@ -245,7 +247,11 @@ int main(int argc, char* argv[], char* envp[]) {
     if(!getenv("firstRun")){
         initRegister(time);
     }
-    //const char * registFileName = initRegister(); 
+    if(!getenv("ORIGIN_PID")){
+        char charPid[10]; 
+        sprintf(charPid,"%d",getpid());
+        setenv("ORIGIN_PID", charPid,1);
+    }
     
     //Initialize Process
     initializeProcess(argv, argc);
@@ -253,13 +259,12 @@ int main(int argc, char* argv[], char* envp[]) {
     //Parse
     parse();
 
-
     //Recursive function
     executer(pInfo->filePath);
-
     wait(NULL); //Waits for child processes to finish
-
-    endProgram();
+    char charPid[10]; 
+    sprintf(charPid,"%d",getpid());
+    endProgram(charPid);
 
     return 0;
 }
