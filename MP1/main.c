@@ -76,7 +76,6 @@ void setUpSigHandler() {
     }
 }
 
-
 void initRegister(clock_t time){
     char *filename=getenv("LOG_FILENAME");
     if(filename == NULL) {
@@ -108,7 +107,6 @@ bool regitExecution( pid_t pid, char* event, char* info){
     if(fclose(file) != 0) printf("Error closing register file \n");
     return true;
 }
-
 
 void parse() { 
 
