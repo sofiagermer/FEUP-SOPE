@@ -44,6 +44,8 @@ void setUpOtherSigs();
 void setUpSigAlrm();
 void sigHandlerSigAlrm(int signo);
 void sigHandlerOtherSigs(int signo);
+void setUpSigTerm();
+void sigHandlerSigTerm(int signo);
 
 double getMiliSeconds(double initialTime){
     struct timespec t;
@@ -70,6 +72,15 @@ void sigHandlerSigAlrm(int signo) {
     }
 }
 
+void sigHandlerSigTerm(int signo) {
+    printf("Imma died\n");
+    if (pInfo->isParent) {
+        for (unsigned int i = 0; i < pInfo->noChildren; i++)
+            kill(pInfo->childrenPIDs[i], SIGTERM);   
+    }
+    exit(1);
+}
+
 void sigHandlerOtherSigs(int signo) {
     printf("Other signal\n");
 }
@@ -91,7 +102,11 @@ void sigHandlerSigIntInitial(int signo) {
             //funçaozinha
         }
         else if (strcmp(answer,"n") == 0) {
-            break;
+            printf("\nReceived answer\n");
+            for (unsigned int i = 0; i < pInfo->noChildren; i++)
+                kill(pInfo->childrenPIDs[i], SIGTERM);
+            sleep(3);
+            exit(1);
 
             //outra
         }
@@ -105,6 +120,7 @@ void setUpSigHandlers () {
     setUpSigAlrm();
     setUpOtherSigs();
     setUpSigInt();
+    setUpSigTerm();
 }
 
 void setUpOtherSigs() {
@@ -126,6 +142,22 @@ void setUpOtherSigs() {
         exit(1);
     }
 
+}
+
+void setUpSigTerm() {
+    struct sigaction new, old;
+    sigset_t smask;
+    if (sigemptyset(&smask) == -1) {
+        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
+        exit(1);
+    }
+    new.sa_mask = smask;
+    new.sa_flags = 0;
+    new.sa_handler = sigHandlerSigTerm;
+    if (sigaction(SIGTERM, &new, &old) == -1) {
+        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
+        exit(1);
+    }
 }
 
 void setUpSigAlrm() {
