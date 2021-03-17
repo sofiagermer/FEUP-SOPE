@@ -4,8 +4,6 @@
 #include "utils.h"
 #include <time.h>
 #include <sys/wait.h>
-#include <stdlib.h>
-#include <string.h>
 
 extern int errno;
 
@@ -23,7 +21,6 @@ typedef struct {
     int noChildren;
 } ProcessInfo;
 
-
 ProcessInfo* pInfo;
 
 //BIGGER FUNCS
@@ -35,7 +32,7 @@ void sigHandlerSigInt(int signo); //Handles ctrlC
 void sigHandlerSigIntInitial(int signo);
 void setUpSigInt(); //Set up the signal handling
 double getMiliSeconds(double initialTime); //Returns time in miliseconds since initialTime
-bool regitExecution(pid_t pid, char* event, char* info); // Writes on execution register
+void regitExecution(pid_t pid, char* event, char* info); // Writes on execution register
 void endProgram(); //To kill everything
 void initializeProcess(char* argv[], int argc); //To initialize the struct and define signal handlers
 void makeNewArgs(char* newArgs[], char* fileName); //To fabricate the arguments for the new process
@@ -43,9 +40,9 @@ void initRegister();
 void setUpOtherSigs();
 void setUpSigAlrm();
 void sigHandlerSigAlrm(int signo);
-void sigHandlerOtherSigs(int signo);
 void setUpSigTerm();
 void sigHandlerSigTerm(int signo);
+void registSignalSent(char* signalSent, int pid);
 
 double getMiliSeconds(double initialTime){
     struct timespec t;
@@ -57,58 +54,64 @@ double getMiliSeconds(double initialTime){
 }
 
 void sigHandlerSigInt(int signo) {
-    printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n",
+    regitExecution(getpid(), "SIGNAL_RECV", "SIGINT");
+    printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d\n",
      getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
     pInfo->sleep = true;
     while(pInfo->sleep) sleep(1);
-    printf("JUST WOKE UP %d\n", getpid());
 }
 
 void sigHandlerSigAlrm(int signo) {
+    regitExecution(getpid(), "SIGNAL_RECV", "SIGALRM");
     pInfo->sleep = false;
     if (pInfo->isParent) {
-        for (unsigned int i = 0; i < pInfo->noChildren; i++)
+        for (unsigned int i = 0; i < pInfo->noChildren; i++) {
             kill(pInfo->childrenPIDs[i], SIGALRM);   
+            registSignalSent("SIGALRM", pInfo->childrenPIDs[i]);
+        }
     }
 }
 
 void sigHandlerSigTerm(int signo) {
-    printf("Imma died\n");
+    regitExecution(getpid(), "SIGNAL_RECV", "SIGTERM");
     if (pInfo->isParent) {
-        for (unsigned int i = 0; i < pInfo->noChildren; i++)
+        for (unsigned int i = 0; i < pInfo->noChildren; i++) {
             kill(pInfo->childrenPIDs[i], SIGTERM);   
+            registSignalSent("SIGTERM", pInfo->childrenPIDs[i]);
+        }
     }
-    exit(1);
+    endProgram(1);
 }
 
-void sigHandlerOtherSigs(int signo) {
-    printf("Other signal\n");
+void registSignalSent(char* signalSent, int pid) {
+    char info[20];
+    sprintf(info, "%s : %d", signalSent, pid);
+    regitExecution(getpid(), "SIGNAL_SENT", info);
 }
 
 void sigHandlerSigIntInitial(int signo) {
     char answer[2];
 
+    regitExecution(getpid(), "SIGNAL_RECV", "SIGINT");
     printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
     sleep(0.2);
     printf("\nDO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)");
     scanf("%s", answer);
 
     while(1) {
-        if(strcmp(answer,"y") == 0){
-            printf("\nReceived answer\n");
-            for (unsigned int i = 0; i < pInfo->noChildren; i++)
+        if(strcmp(answer,"y") == 0) {
+            for (unsigned int i = 0; i < pInfo->noChildren; i++) {
                 kill(pInfo->childrenPIDs[i], SIGALRM);
+                registSignalSent("SIGALRM", pInfo->childrenPIDs[i]);
+            }
             break;
-            //funçaozinha
         }
         else if (strcmp(answer,"n") == 0) {
-            printf("\nReceived answer\n");
-            for (unsigned int i = 0; i < pInfo->noChildren; i++)
+            for (unsigned int i = 0; i < pInfo->noChildren; i++) {
                 kill(pInfo->childrenPIDs[i], SIGTERM);
-            sleep(3);
-            exit(1);
-
-            //outra
+                registSignalSent("SIGTERM", pInfo->childrenPIDs[i]);
+            }
+            endProgram(1);
         }
         else {
             printf("NOT A VALID ANSWER\n");
@@ -124,7 +127,7 @@ void setUpSigHandlers () {
 }
 
 void setUpOtherSigs() {
-    struct sigaction new, old;
+    /*struct sigaction new, old;
     sigset_t smask;
     if (sigemptyset(&smask) == -1) {
         fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
@@ -140,7 +143,7 @@ void setUpOtherSigs() {
     if (sigaction(SIGPIPE, &new, &old) == -1) {
         fprintf(stderr, "Error with sigaction: %s", strerror(errno));
         exit(1);
-    }
+    }*/
 
 }
 
@@ -170,7 +173,7 @@ void setUpSigAlrm() {
     new.sa_mask = smask;
     new.sa_flags = 0;
     if (pInfo->isInitial)
-        new.sa_handler = sigHandlerOtherSigs;
+        new.sa_handler = sigHandlerSigAlrm;
     else
         new.sa_handler = sigHandlerSigAlrm;
     if (sigaction(SIGALRM, &new, &old) == -1) {
@@ -198,13 +201,13 @@ void setUpSigInt () {
     }
 }
 
-void initRegister (){
+void initRegister () {
     struct timespec t;
     clock_gettime(CLOCK_REALTIME,&t);
     char *filename = getenv("LOG_FILENAME");
     if(filename == NULL) {
-        fprintf(stderr, "Environment variable error: no such file or location\n");
-        exit(1);
+        fprintf(stderr, "Environment variable error: no such file or directory\n");
+        endProgram(1);
     }
     else{
         char timeString[50];
@@ -218,21 +221,26 @@ void initRegister (){
     }
 }
 
-bool regitExecution( pid_t pid, char* event, char* info){
-    char* filename=getenv("LOG_FILENAME");
+void regitExecution( pid_t pid, char* event, char* info){
+    char* filename = getenv("LOG_FILENAME");
     if(filename == NULL) {
-        printf("Environment variable Error \n");
-        return false;
+        fprintf(stderr, "Environment variable error: no such file or directory\n");
+        endProgram(1);
     }
-    double initialTime=strtod(getenv("firstRun"),NULL);
-    double time=getMiliSeconds(initialTime);
+    double initialTime = strtod(getenv("firstRun"),NULL);
+    double time = getMiliSeconds(initialTime);
+
     FILE *file = fopen(filename, "a");
     char* newBuffer = (char*) malloc(300 * sizeof(char));
-    setvbuf(file,newBuffer,_IOLBF,300);
-    fprintf(file,"%f ; %d ; %s ; %s\n",time,pid,event,info);
+    setvbuf(file, newBuffer, _IOLBF, 300);
+    fprintf(file, "%f ; %d ; %s ; %s\n", time, pid, event, info);
     free(newBuffer);
-    if(fclose(file) != 0) printf("Error closing register file \n");
-    return true;
+
+    if(fclose(file) != 0) {
+        fprintf(stderr, "Error closing register file: %s\n", strerror(errno));
+        endProgram(1);
+    }
+
 }
 
 void parse() { 
@@ -271,8 +279,68 @@ void becomingAParent() {
     if (!pInfo->isParent) {
         pInfo->isParent = true;
         pInfo->childrenPIDs = (int*) malloc(100 * sizeof(int));
-         printf("Done that %d\n", getpid());
     }
+}
+
+void registProcessExit(int exitStatus) {
+    char info[10];
+    sprintf(info, "%d", exitStatus);
+    regitExecution(getpid(), "PROC_EXIT", info);
+}
+
+void registProcessCreation(char* args[]) {
+    char info[100] = "";
+    for (unsigned int i = 0; i < pInfo->args.nArgs; i++) {
+        strcat(info, args[i]);
+        strcat(info, " ,");
+    }
+    regitExecution(getpid(), "PROC_CREAT" , info);
+
+}
+
+void hasAChild(char* newPath) {
+    //GETTING READY TO SAVE CHILDREN'S PIDS
+    becomingAParent();
+    
+    char* args[pInfo->args.nArgs + 1];
+    makeNewArgs(args, newPath);
+    registProcessCreation(args);
+    
+
+    int id = fork();
+    switch (id) {
+        case 0: {
+            registProcessCreation(args);
+            char* args[pInfo->args.nArgs + 1];
+            makeNewArgs(args, newPath);
+            
+            if (execvp(args[0], args) == -1) {
+                fprintf(stderr, "Error with execvpe: %s", strerror(errno));
+                exit(1);
+            }
+            break;
+        }
+        case -1:{
+            fprintf(stderr, "Error with fork:%s\n", strerror(errno));
+            regitExecution(getpid(), "PROC_EXIT",  "1");
+            exit(1);
+        }
+        default: {
+            pInfo->childrenPIDs[pInfo->noChildren] = id;
+            pInfo->noChildren++;
+            break;
+        }
+    }
+}
+
+void registFileModf(mode_t oldMode, mode_t newMode, char* filePath) {
+    char* fourDigitOldMode = (char*)malloc(sizeof(oldMode));
+    fourDigitOctal(oldMode,fourDigitOldMode);
+    char* fourDigitNewMode = (char*)malloc(sizeof(newMode));
+    fourDigitOctal(newMode,fourDigitNewMode);
+    char *info=(char*)malloc(strlen(filePath)+strlen(fourDigitOldMode) + strlen(fourDigitNewMode) + 100);  //Nao funciona n percebo pq.... 
+    sprintf(info, "%s : %s : %s", filePath, fourDigitOldMode, fourDigitNewMode);
+    regitExecution(getpid(), "FILE_MODF", info); 
 }
 
 void executer(char* filePath) { 
@@ -300,17 +368,7 @@ void executer(char* filePath) {
         exit(1);
     }
     else {
-        char* fourDigitOldMode=(char*)malloc(sizeof(oldMode));
-        fourDigitOctal(oldMode,fourDigitOldMode);
-        char* fourDigitNewMode=(char*)malloc(sizeof(newMode));
-        fourDigitOctal(newMode,fourDigitNewMode);
-        char *info=(char*)malloc(strlen(filePath)+strlen(fourDigitOldMode)+strlen(fourDigitNewMode)+100);  //Nao funciona n percebo pq.... 
-        strcpy(info,filePath);
-        strcat(info," : ");
-        strcat(info,fourDigitOldMode);
-        strcat(info," : ");
-        strcat(info,fourDigitNewMode); 
-        regitExecution(getpid(), "FILE_MODF", info); 
+        registFileModf(oldMode, newMode, filePath);
         diagnosticPrint(filePath, oldMode, newMode, pInfo->options); 
         pInfo->noFilesChanged++;
     }
@@ -337,40 +395,8 @@ void executer(char* filePath) {
                     executer(newPath);
                     continue;
                 }
+                hasAChild(newPath);
 
-                //GETTING READY TO SAVE CHILDREN'S PIDS
-                becomingAParent();
-                
-                regitExecution(getpid(), "PROC_CREAT" , "GET INFO!!!");
-                char* args[pInfo->args.nArgs + 1];
-                makeNewArgs(args, newPath);
-                
-
-                int id = fork();
-                switch (id) {
-                    case 0: {
-                        regitExecution(getpid(), "PROC_CREAT" , "GET INFO!!!");
-                        char* args[pInfo->args.nArgs + 1];
-                        makeNewArgs(args, newPath);
-                        
-                        if (execvp(args[0], args) == -1) {
-                            fprintf(stderr, "Error with execvpe: %s", strerror(errno));
-                            exit(1);
-                        }
-                        break;
-                    }
-                    case -1:{
-                        fprintf(stderr, "Error with fork:%s\n", strerror(errno));
-                        regitExecution(getpid(), "PROC_EXIT",  "1");
-                        exit(1);
-                    }
-                    default: {
-                        pInfo->childrenPIDs[pInfo->noChildren] = id;
-                        pInfo->noChildren++;
-                        printf("Been there %d\n", getpid());
-                        break;
-                    }
-                }
                 free(newPath);
 
             }               
@@ -402,7 +428,9 @@ void initializeProcess(char* argv[], int argc) {
     setUpSigHandlers();
 }
 
-void endProgram() {
+void endProgram(int exitStatus) {
+
+    registProcessExit(exitStatus);
 
     if(pInfo->isInitial){
         unsetenv("firstRun");
@@ -412,6 +440,8 @@ void endProgram() {
     }
     
     free(pInfo);
+    
+    exit(exitStatus);
 }
 
 int main(int argc, char* argv[], char* envp[]) {
@@ -420,14 +450,14 @@ int main(int argc, char* argv[], char* envp[]) {
 
     //Parse
     parse();
-    printf("%d\n",getpid());
+
     //Recursive function
     executer(pInfo->filePath);
     
     wait(NULL); //Waits for child processes to finish
 
     while(1) sleep(1);
-    endProgram();
+    endProgram(0);
     
 
     return 0;
