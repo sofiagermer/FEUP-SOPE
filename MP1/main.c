@@ -40,6 +40,10 @@ void endProgram(); //To kill everything
 void initializeProcess(char* argv[], int argc); //To initialize the struct and define signal handlers
 void makeNewArgs(char* newArgs[], char* fileName); //To fabricate the arguments for the new process
 void initRegister();
+void setUpOtherSigs();
+void setUpSigAlrm();
+void sigHandlerSigAlrm(int signo);
+void sigHandlerOtherSigs(int signo);
 
 double getMiliSeconds(double initialTime){
     struct timespec t;
@@ -58,7 +62,7 @@ void sigHandlerSigInt(int signo) {
     printf("JUST WOKE UP %d\n", getpid());
 }
 
-void sigHandlerSigAlarm(int signo) {
+void sigHandlerSigAlrm(int signo) {
     pInfo->sleep = false;
     if (pInfo->isParent) {
         for (unsigned int i = 0; i < pInfo->noChildren; i++)
@@ -66,11 +70,15 @@ void sigHandlerSigAlarm(int signo) {
     }
 }
 
+void sigHandlerOtherSigs(int signo) {
+    printf("Other signal\n");
+}
+
 void sigHandlerSigIntInitial(int signo) {
     char answer[2];
 
     printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
-    sleep(1);
+    sleep(0.2);
     printf("\nDO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)");
     scanf("%s", answer);
 
@@ -83,14 +91,60 @@ void sigHandlerSigIntInitial(int signo) {
             //funçaozinha
         }
         else if (strcmp(answer,"n") == 0) {
+            break;
 
             //outra
         }
         else {
             printf("NOT A VALID ANSWER\n");
         }
-        printf("Received any answer\n");
     } 
+}
+
+void setUpSigHandlers () {
+    setUpSigAlrm();
+    setUpOtherSigs();
+    setUpSigInt();
+}
+
+void setUpOtherSigs() {
+    struct sigaction new, old;
+    sigset_t smask;
+    if (sigemptyset(&smask) == -1) {
+        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
+        exit(1);
+    }
+    new.sa_mask = smask;
+    new.sa_flags = 0;
+    new.sa_handler = sigHandlerOtherSigs;
+    if (sigaction(SIGIO, &new, &old) == -1) {
+        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
+        exit(1);
+    }
+    if (sigaction(SIGPIPE, &new, &old) == -1) {
+        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
+        exit(1);
+    }
+
+}
+
+void setUpSigAlrm() {
+    struct sigaction new, old;
+    sigset_t smask;
+    if (sigemptyset(&smask) == -1) {
+        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
+        exit(1);
+    }
+    new.sa_mask = smask;
+    new.sa_flags = 0;
+    if (pInfo->isInitial)
+        new.sa_handler = sigHandlerOtherSigs;
+    else
+        new.sa_handler = sigHandlerSigAlrm;
+    if (sigaction(SIGALRM, &new, &old) == -1) {
+        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
+        exit(1);
+    }
 }
 
 void setUpSigInt () {
@@ -252,6 +306,7 @@ void executer(char* filePath) {
                     continue;
                 }
 
+                //GETTING READY TO SAVE CHILDREN'S PIDS
                 becomingAParent();
                 
                 regitExecution(getpid(), "PROC_CREAT" , "GET INFO!!!");
@@ -312,7 +367,7 @@ void initializeProcess(char* argv[], int argc) {
     pInfo->noChildren = 0;
      
 
-    setUpSigInt();
+    setUpSigHandlers();
 }
 
 void endProgram() {
