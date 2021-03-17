@@ -3,7 +3,7 @@
 #include "options.h"
 #include "utils.h"
 #include <time.h>
-#include<sys/wait.h>
+#include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -16,7 +16,11 @@ typedef struct {
     Arguments args;
     char* filePath;
     char* modeString;
+    bool isInitial;
     bool isParent;
+    bool sleep;
+    int* childrenPIDs;
+    int noChildren;
 } ProcessInfo;
 
 
@@ -27,8 +31,9 @@ void parse(); //Parses arguments
 void executer(char* fileName); //Recursive funtion
 
 //AUXILIARY FUNCS
-void sigHandler(int signo); //Handles ctrlC
-void setUpSigHandler(); //Set up the signal handling
+void sigHandlerSigInt(int signo); //Handles ctrlC
+void sigHandlerSigIntInitial(int signo);
+void setUpSigInt(); //Set up the signal handling
 double getMiliSeconds(double initialTime); //Returns time in miliseconds since initialTime
 bool regitExecution(pid_t pid, char* event, char* info); // Writes on execution register
 void endProgram(); //To kill everything
@@ -45,28 +50,50 @@ double getMiliSeconds(double initialTime){
     return (double)(curTime - initialTime)*1000;
 }
 
-void sigHandler(int signo) {
-    char answer[2];
-    printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
-    while(1){
-        if(pInfo->isParent){
-            printf("\nDO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)\n");
-            scanf("%s", answer);
-            if(strcmp(answer,"y")){
-                //funçaozinha
-            }
-            else if (strcmp(answer,"n\n")){
-                exit(1);
-            }
-            else{
-                printf("NOT A VALID ANSWER\n");
-            }
-        }
-    }
-    
+void sigHandlerSigInt(int signo) {
+    printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n",
+     getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
+    pInfo->sleep = true;
+    while(pInfo->sleep) sleep(1);
+    printf("JUST WOKE UP %d\n", getpid());
 }
 
-void setUpSigHandler() {
+void sigHandlerSigAlarm(int signo) {
+    pInfo->sleep = false;
+    if (pInfo->isParent) {
+        for (unsigned int i = 0; i < pInfo->noChildren; i++)
+            kill(pInfo->childrenPIDs[i], SIGALRM);   
+    }
+}
+
+void sigHandlerSigIntInitial(int signo) {
+    char answer[2];
+
+    printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
+    sleep(1);
+    printf("\nDO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)");
+    scanf("%s", answer);
+
+    while(1) {
+        if(strcmp(answer,"y") == 0){
+            printf("\nReceived answer\n");
+            for (unsigned int i = 0; i < pInfo->noChildren; i++)
+                kill(pInfo->childrenPIDs[i], SIGALRM);
+            break;
+            //funçaozinha
+        }
+        else if (strcmp(answer,"n") == 0) {
+
+            //outra
+        }
+        else {
+            printf("NOT A VALID ANSWER\n");
+        }
+        printf("Received any answer\n");
+    } 
+}
+
+void setUpSigInt () {
     struct sigaction new, old;
     sigset_t smask;
     if (sigemptyset(&smask) == -1) {
@@ -75,24 +102,29 @@ void setUpSigHandler() {
     }
     new.sa_mask = smask;
     new.sa_flags = 0;
-    new.sa_handler = sigHandler;
+    if (pInfo->isInitial)
+        new.sa_handler = sigHandlerSigIntInitial;
+    else
+        new.sa_handler = sigHandlerSigInt;
     if (sigaction(SIGINT, &new, &old) == -1) {
         fprintf(stderr, "Error with sigaction: %s", strerror(errno));
         exit(1);
     }
 }
 
-void initRegister(){
+void initRegister (){
     struct timespec t;
     clock_gettime(CLOCK_REALTIME,&t);
-    char *filename=getenv("LOG_FILENAME");
+    char *filename = getenv("LOG_FILENAME");
     if(filename == NULL) {
-        printf("Environment variable Error \n");
+        fprintf(stderr, "Environment variable error: no such file or location\n");
+        exit(1);
     }
     else{
         char timeString[50];
         sprintf(timeString,"%lld.%.9ld", (long long)t.tv_sec, t.tv_nsec);
         setenv("firstRun",timeString,1);
+
         //Opens a text file for both reading and writing. 
         //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.
         FILE *file = fopen(filename, "w+");
@@ -109,9 +141,10 @@ bool regitExecution( pid_t pid, char* event, char* info){
     double initialTime=strtod(getenv("firstRun"),NULL);
     double time=getMiliSeconds(initialTime);
     FILE *file = fopen(filename, "a");
-    char newBuffer[300];
+    char* newBuffer = (char*) malloc(300 * sizeof(char));
     setvbuf(file,newBuffer,_IOLBF,300);
     fprintf(file,"%f ; %d ; %s ; %s\n",time,pid,event,info);
+    free(newBuffer);
     if(fclose(file) != 0) printf("Error closing register file \n");
     return true;
 }
@@ -145,6 +178,14 @@ void makeNewArgs(char* newArgs[], char* fileName) {
             newArgs[i] = pInfo->args.arguments[i];
         if (i == pInfo->args.nArgs)
             newArgs[i] = NULL;
+    }
+}
+
+void becomingAParent() {
+    if (!pInfo->isParent) {
+        pInfo->isParent = true;
+        pInfo->childrenPIDs = (int*) malloc(100 * sizeof(int));
+         printf("Done that %d\n", getpid());
     }
 }
 
@@ -210,6 +251,8 @@ void executer(char* filePath) {
                     executer(newPath);
                     continue;
                 }
+
+                becomingAParent();
                 
                 regitExecution(getpid(), "PROC_CREAT" , "GET INFO!!!");
                 char* args[pInfo->args.nArgs + 1];
@@ -235,7 +278,9 @@ void executer(char* filePath) {
                         exit(1);
                     }
                     default: {
-                        //printf("I am the parent\n");
+                        pInfo->childrenPIDs[pInfo->noChildren] = id;
+                        pInfo->noChildren++;
+                        printf("Been there %d\n", getpid());
                         break;
                     }
                 }
@@ -250,24 +295,33 @@ void executer(char* filePath) {
 
 void initializeProcess(char* argv[], int argc) {
     pInfo = (ProcessInfo*) malloc(sizeof(ProcessInfo));
-    pInfo->isParent=false;
+
     if(!getenv("firstRun")){
         initRegister();
-        pInfo->isParent=true;
+        pInfo->isInitial = true;
     }
+    else    
+        pInfo->isInitial = false;
+
+    pInfo->isParent = false;
     pInfo->noFilesChanged = 0;
     pInfo->noFilesFound = 0;
     pInfo->args.arguments = argv;
     pInfo->args.nArgs = argc;  
+    pInfo->childrenPIDs = NULL;
+    pInfo->noChildren = 0;
      
 
-    setUpSigHandler();
+    setUpSigInt();
 }
 
 void endProgram() {
 
-    if(pInfo->isParent){
+    if(pInfo->isInitial){
         unsetenv("firstRun");
+    }
+    if (pInfo->isParent) {
+        free(pInfo->childrenPIDs);
     }
     
     free(pInfo);
@@ -284,8 +338,8 @@ int main(int argc, char* argv[], char* envp[]) {
     executer(pInfo->filePath);
     
     wait(NULL); //Waits for child processes to finish
-    //("pid : %d \n", getpid());
-    //while(1) sleep(1);
+
+    while(1) sleep(1);
     endProgram();
     
 
