@@ -6,16 +6,7 @@
 #include<sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
-void delay(int milliseconds)
-{
-    long pause;
-    clock_t now,then;
 
-    pause = milliseconds*(CLOCKS_PER_SEC/1000);
-    now = then = clock();
-    while( (now-then) < pause )
-        now = clock();
-}
 extern int errno;
 
 typedef struct {
@@ -38,17 +29,20 @@ void executer(char* fileName); //Recursive funtion
 //AUXILIARY FUNCS
 void sigHandler(int signo); //Handles ctrlC
 void setUpSigHandler(); //Set up the signal handling
-double getMiliSeconds(long initialTime); //Returns time in miliseconds since initialTime
+double getMiliSeconds(double initialTime); //Returns time in miliseconds since initialTime
 bool regitExecution(pid_t pid, char* event, char* info); // Writes on execution register
 void endProgram(); //To kill everything
 void initializeProcess(char* argv[], int argc); //To initialize the struct and define signal handlers
 void makeNewArgs(char* newArgs[], char* fileName); //To fabricate the arguments for the new process
 void initRegister();
 
-double getMiliSeconds(long initialTime){
-    struct timespec curTime;
-    clock_gettime(CLOCK_REALTIME,&curTime);
-    return (double)(curTime.tv_nsec - initialTime)/1000000;
+double getMiliSeconds(double initialTime){
+    struct timespec t;
+    clock_gettime(CLOCK_REALTIME,&t);
+    char aux[20];
+    sprintf(aux,"0.%ld",t.tv_nsec);
+    double curTime=(double)t.tv_sec+strtod(aux,NULL);
+    return (double)(curTime - initialTime)*1000;
 }
 
 void sigHandler(int signo) {
@@ -96,8 +90,8 @@ void initRegister(){
         printf("Environment variable Error \n");
     }
     else{
-        char timeString[20];
-        sprintf(timeString,"%ld",t.tv_nsec);
+        char timeString[50];
+        sprintf(timeString,"%lld.%.9ld", (long long)t.tv_sec, t.tv_nsec);
         setenv("firstRun",timeString,1);
         //Opens a text file for both reading and writing. 
         //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.
@@ -112,8 +106,7 @@ bool regitExecution( pid_t pid, char* event, char* info){
         printf("Environment variable Error \n");
         return false;
     }
-    char *eptr;
-    long initialTime=strtol(getenv("firstRun"),&eptr,10);
+    double initialTime=strtod(getenv("firstRun"),NULL);
     double time=getMiliSeconds(initialTime);
     FILE *file = fopen(filename, "a");
     char newBuffer[300];
@@ -290,9 +283,9 @@ int main(int argc, char* argv[], char* envp[]) {
     //Recursive function
     executer(pInfo->filePath);
     
-    /* wait(NULL); */ //Waits for child processes to finish
+    wait(NULL); //Waits for child processes to finish
     //("pid : %d \n", getpid());
-    while(1) sleep(1);
+    //while(1) sleep(1);
     endProgram();
     
 

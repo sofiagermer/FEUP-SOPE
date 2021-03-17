@@ -1,24 +1,24 @@
-            0.323417 ; 29548 ; FILE_MODF ; testDir : 0777 : 0777
-            0.508308 ; 29548 ; FILE_MODF ; testDir/testfile4.txt : 0777 : 0777
-            0.588498 ; 29548 ; PROC_EXIT ; 0
-            0.687425 ; 29548 ; FILE_MODF ; testDir/testfile2.txt : 0777 : 0777
-            0.759528 ; 29548 ; PROC_EXIT ; 0
-            0.832189 ; 29548 ; FILE_MODF ; testDir/testfile3.txt : 0777 : 0777
-            0.885766 ; 29548 ; PROC_EXIT ; 0
-            0.927883 ; 29548 ; PROC_CREAT ; GET INFO!!!
-            1.226451 ; 29548 ; FILE_MODF ; testDir/-vNew Empty.txt : 0777 : 0777
-            1.348450 ; 29548 ; PROC_EXIT ; 0
-            1.252426 ; 29549 ; PROC_CREAT ; GET INFO!!!
-            1.409009 ; 29548 ; PROC_EXIT ; 0
-            3.157294 ; 29549 ; FILE_MODF ; testDir/testDir2 : 0777 : 0777
-            3.306079 ; 29549 ; FILE_MODF ; testDir/testDir2/testfile5.txt : 0777 : 0777
-            3.320680 ; 29549 ; PROC_EXIT ; 0
-            3.336104 ; 29549 ; FILE_MODF ; testDir/testDir2/testfile6.txt : 0777 : 0777
-            3.347536 ; 29549 ; PROC_EXIT ; 0
-            3.356501 ; 29549 ; PROC_CREAT ; GET INFO!!!
-            3.433741 ; 29549 ; PROC_EXIT ; 0
-            3.460738 ; 29550 ; PROC_CREAT ; GET INFO!!!
-            4.106074 ; 29550 ; FILE_MODF ; testDir/testDir2/testDir3 : 0777 : 0777
-            4.160016 ; 29550 ; FILE_MODF ; testDir/testDir2/testDir3/testfile7.txt : 0777 : 0777
-            4.180321 ; 29550 ; PROC_EXIT ; 0
-            4.192513 ; 29550 ; PROC_EXIT ; 0
+0.340223 ; 18025 ; FILE_MODF ; testDir : 0777 : 0777
+0.545025 ; 18025 ; FILE_MODF ; testDir/testfile4.txt : 0777 : 0777
+0.639439 ; 18025 ; PROC_EXIT ; 0
+0.754833 ; 18025 ; FILE_MODF ; testDir/testfile2.txt : 0777 : 0777
+0.927210 ; 18025 ; PROC_EXIT ; 0
+1.035929 ; 18025 ; FILE_MODF ; testDir/testfile3.txt : 0777 : 0777
+1.141071 ; 18025 ; PROC_EXIT ; 0
+1.200199 ; 18025 ; PROC_CREAT ; GET INFO!!!
+1.630306 ; 18025 ; FILE_MODF ; testDir/-vNew Empty.txt : 0777 : 0777
+1.675129 ; 18026 ; PROC_CREAT ; GET INFO!!!
+1.767635 ; 18025 ; PROC_EXIT ; 0
+1.843691 ; 18025 ; PROC_EXIT ; 0
+3.037691 ; 18026 ; FILE_MODF ; testDir/testDir2 : 0777 : 0777
+3.077507 ; 18026 ; FILE_MODF ; testDir/testDir2/testfile5.txt : 0777 : 0777
+3.091097 ; 18026 ; PROC_EXIT ; 0
+3.105164 ; 18026 ; FILE_MODF ; testDir/testDir2/testfile6.txt : 0777 : 0777
+3.115892 ; 18026 ; PROC_EXIT ; 0
+3.122807 ; 18026 ; PROC_CREAT ; GET INFO!!!
+3.198624 ; 18026 ; PROC_EXIT ; 0
+3.233194 ; 18027 ; PROC_CREAT ; GET INFO!!!
+3.813505 ; 18027 ; FILE_MODF ; testDir/testDir2/testDir3 : 0777 : 0777
+3.852129 ; 18027 ; FILE_MODF ; testDir/testDir2/testDir3/testfile7.txt : 0777 : 0777
+3.865480 ; 18027 ; PROC_EXIT ; 0
+3.873587 ; 18027 ; PROC_EXIT ; 0
