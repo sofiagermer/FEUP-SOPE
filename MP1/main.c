@@ -6,7 +6,16 @@
 #include<sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
+void delay(int milliseconds)
+{
+    long pause;
+    clock_t now,then;
 
+    pause = milliseconds*(CLOCKS_PER_SEC/1000);
+    now = then = clock();
+    while( (now-then) < pause )
+        now = clock();
+}
 extern int errno;
 
 typedef struct {
@@ -16,6 +25,7 @@ typedef struct {
     Arguments args;
     char* filePath;
     char* modeString;
+    bool isParent;
 } ProcessInfo;
 
 
@@ -28,32 +38,34 @@ void executer(char* fileName); //Recursive funtion
 //AUXILIARY FUNCS
 void sigHandler(int signo); //Handles ctrlC
 void setUpSigHandler(); //Set up the signal handling
-double getMiliSeconds(clock_t initialTime); //Returns time in miliseconds since initialTime
+double getMiliSeconds(long initialTime); //Returns time in miliseconds since initialTime
 bool regitExecution(pid_t pid, char* event, char* info); // Writes on execution register
 void endProgram(); //To kill everything
 void initializeProcess(char* argv[], int argc); //To initialize the struct and define signal handlers
 void makeNewArgs(char* newArgs[], char* fileName); //To fabricate the arguments for the new process
 void initRegister();
 
-double getMiliSeconds(clock_t initialTime){
-    clock_t actualTime = clock();
-    return (double)(actualTime-initialTime)/(CLOCKS_PER_SEC/1000);
+double getMiliSeconds(long initialTime){
+    struct timespec curTime;
+    clock_gettime(CLOCK_REALTIME,&curTime);
+    return (double)(curTime.tv_nsec - initialTime)/1000000;
 }
 
 void sigHandler(int signo) {
-    char charPID[7];
-    sprintf(charPID,"%d",getpid());
     char answer[2];
     printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
     while(1){
-        if(strcmp(getenv("ORIGIN_PID"),charPID)){
+        if(pInfo->isParent){
             printf("\nDO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)\n");
             scanf("%s", answer);
             if(strcmp(answer,"y")){
                 //funçaozinha
             }
+            else if (strcmp(answer,"n\n")){
+                exit(1);
+            }
             else{
-                //exit(1);
+                printf("NOT A VALID ANSWER\n");
             }
         }
     }
@@ -76,14 +88,16 @@ void setUpSigHandler() {
     }
 }
 
-void initRegister(clock_t time){
+void initRegister(){
+    struct timespec t;
+    clock_gettime(CLOCK_REALTIME,&t);
     char *filename=getenv("LOG_FILENAME");
     if(filename == NULL) {
         printf("Environment variable Error \n");
     }
     else{
         char timeString[20];
-        sprintf(timeString,"%ld",time);
+        sprintf(timeString,"%ld",t.tv_nsec);
         setenv("firstRun",timeString,1);
         //Opens a text file for both reading and writing. 
         //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.
@@ -98,7 +112,8 @@ bool regitExecution( pid_t pid, char* event, char* info){
         printf("Environment variable Error \n");
         return false;
     }
-    int initialTime=atoi(getenv("firstRun"));
+    char *eptr;
+    long initialTime=strtol(getenv("firstRun"),&eptr,10);
     double time=getMiliSeconds(initialTime);
     FILE *file = fopen(filename, "a");
     char newBuffer[300];
@@ -242,37 +257,30 @@ void executer(char* filePath) {
 
 void initializeProcess(char* argv[], int argc) {
     pInfo = (ProcessInfo*) malloc(sizeof(ProcessInfo));
-
+    pInfo->isParent=false;
+    if(!getenv("firstRun")){
+        initRegister();
+        pInfo->isParent=true;
+    }
     pInfo->noFilesChanged = 0;
     pInfo->noFilesFound = 0;
     pInfo->args.arguments = argv;
-    pInfo->args.nArgs = argc;   
+    pInfo->args.nArgs = argc;  
+     
 
     setUpSigHandler();
 }
 
 void endProgram() {
-    char charPid[strlen(getenv("ORIGIN_PID"))]; 
-    sprintf(charPid,"%d",getpid());
-    if(strcmp(charPid, getenv("ORIGIN_PID")) == 0){
+
+    if(pInfo->isParent){
         unsetenv("firstRun");
-        unsetenv("ORIGIN_PID");
     }
     
     free(pInfo);
 }
 
 int main(int argc, char* argv[], char* envp[]) {
-
-    clock_t time = clock();
-
-    if(!getenv("firstRun")){
-        initRegister(time);
-        char charPid[10]; 
-        sprintf(charPid,"%d",getpid());
-        setenv("ORIGIN_PID", charPid,1);
-    }
-    
     //Initialize Process
     initializeProcess(argv, argc);
 
