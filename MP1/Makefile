@@ -10,13 +10,13 @@ main.exe: main.o modes.o options.o utils.o
 main.o: main.c
 	$(CC) $(CFLAGS) -c main.c
 
-modes.o: modes.h modes.c
+modes.o: headers/modes.h modes.c
 	$(CC) $(CFLAGS) -c modes.c
 
-options.o: options.c options.h
+options.o: headers/options.h options.c
 	$(CC) $(CFLAGS) -c options.c
 
-utils.o: utils.c utils.h
+utils.o: headers/utils.h utils.c
 	$(CC) $(CFLAGS) -c utils.c
 
 clean:

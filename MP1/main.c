@@ -1,9 +1,9 @@
-#include <signal.h>
-#include "modes.h"
-#include "options.h"
-#include "utils.h"
-#include <time.h>
 #include <sys/wait.h>
+#include <signal.h>
+#include <time.h>
+#include "headers/modes.h"
+#include "headers/options.h"
+#include "headers/utils.h"
 
 extern int errno;
 
@@ -48,7 +48,7 @@ double getMiliSeconds(double initialTime){
     struct timespec t;
     clock_gettime(CLOCK_REALTIME,&t);
     char aux[20];
-    sprintf(aux,"0.%ld",t.tv_nsec);
+    snprintf(aux,sizeof(aux),"0.%ld",t.tv_nsec);
     double curTime=(double)t.tv_sec+strtod(aux,NULL);
     return (double)(curTime - initialTime)*1000;
 }
@@ -85,7 +85,7 @@ void sigHandlerSigTerm(int signo) {
 
 void registSignalSent(char* signalSent, int pid) {
     char info[20];
-    sprintf(info, "%s : %d", signalSent, pid);
+    snprintf(info,sizeof(info), "%s : %d", signalSent, pid);
     regitExecution(getpid(), "SIGNAL_SENT", info);
 }
 
@@ -105,15 +105,13 @@ void sigHandlerSigIntInitial(int signo) {
                 registSignalSent("SIGALRM", pInfo->childrenPIDs[i]);
             }
             break;
-        }
-        else if (strcmp(answer,"n") == 0) {
+        } else if (strcmp(answer,"n") == 0) {
             for (unsigned int i = 0; i < pInfo->noChildren; i++) {
                 kill(pInfo->childrenPIDs[i], SIGTERM);
                 registSignalSent("SIGTERM", pInfo->childrenPIDs[i]);
             }
             endProgram(1);
-        }
-        else {
+        } else {
             printf("NOT A VALID ANSWER\n");
         }
     } 
@@ -208,10 +206,9 @@ void initRegister () {
     if(filename == NULL) {
         fprintf(stderr, "Environment variable error: no such file or directory\n");
         endProgram(1);
-    }
-    else{
+    } else{
         char timeString[50];
-        sprintf(timeString,"%lld.%.9ld", (long long)t.tv_sec, t.tv_nsec);
+        snprintf(timeString,sizeof(timeString),"%lld.%.9ld", (long long)t.tv_sec, t.tv_nsec);
         setenv("firstRun",timeString,1);
 
         //Opens a text file for both reading and writing. 
@@ -252,12 +249,10 @@ void parse() {
         if (pInfo->args.arguments[i][0] == '-') {
             for (unsigned int j = 0; j < strlen(pInfo->args.arguments[i]); j++)
                 processOption(pInfo->args.arguments[i][j], &pInfo->options);
-        }
-        else if (isMode) {
+        } else if (isMode) {
             pInfo->modeString = pInfo->args.arguments[i];
             isMode = false;
-        }
-        else {
+        } else {
             pInfo->filePath = pInfo->args.arguments[i];  
             pInfo->args.fileNameIndex = i;
         }    
@@ -284,15 +279,14 @@ void becomingAParent() {
 
 void registProcessExit(int exitStatus) {
     char info[10];
-    sprintf(info, "%d", exitStatus);
+    snprintf(info,sizeof(info), "%d", exitStatus);
     regitExecution(getpid(), "PROC_EXIT", info);
 }
 
 void registProcessCreation(char* args[]) {
     char info[100] = "";
     for (unsigned int i = 0; i < pInfo->args.nArgs; i++) {
-        strcat(info, args[i]);
-        strcat(info, " ,");
+        snprintf(info,sizeof(info),"%s ,",args[i]);
     }
     regitExecution(getpid(), "PROC_CREAT" , info);
 
@@ -338,8 +332,9 @@ void registFileModf(mode_t oldMode, mode_t newMode, char* filePath) {
     fourDigitOctal(oldMode,fourDigitOldMode);
     char* fourDigitNewMode = (char*)malloc(sizeof(newMode));
     fourDigitOctal(newMode,fourDigitNewMode);
-    char *info=(char*)malloc(strlen(filePath)+strlen(fourDigitOldMode) + strlen(fourDigitNewMode) + 100);  //Nao funciona n percebo pq.... 
-    sprintf(info, "%s : %s : %s", filePath, fourDigitOldMode, fourDigitNewMode);
+    size_t size=strlen(filePath)+strlen(fourDigitOldMode) + strlen(fourDigitNewMode) + 20;
+    char *info=(char*)malloc(size); 
+    snprintf(info,size, "%s : %s : %s", filePath, fourDigitOldMode, fourDigitNewMode);
     regitExecution(getpid(), "FILE_MODF", info); 
 }
 
@@ -366,8 +361,7 @@ void executer(char* filePath) {
         regitExecution(getpid(), "PROC_EXIT",  "1");
         fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
         exit(1);
-    }
-    else {
+    } else {
         registFileModf(oldMode, newMode, filePath);
         diagnosticPrint(filePath, oldMode, newMode, pInfo->options); 
         pInfo->noFilesChanged++;
@@ -385,10 +379,10 @@ void executer(char* filePath) {
             if(strcmp(".", entry->d_name) != 0 && strcmp("..", entry->d_name) != 0){
 
                 //NEW FILE
-                char* newPath = (char*) malloc(strlen(entry->d_name) + 1 + strlen(filePath));
-                strcpy(newPath,filePath);
-                strcat(newPath,"/");
-                strcat(newPath,entry->d_name);
+                size_t sizeNewPath=strlen(entry->d_name) + 2 + strlen(filePath); // +2, 1 because of the "/" and 1 because of the null terminator
+                char* newPath = (char*) malloc(sizeNewPath);
+                snprintf(newPath,sizeNewPath,"%s/%s",filePath,entry->d_name);
+
 
                 //VERIFY IF IT IS A DIRECTORY
                 if (entry->d_type != DT_DIR) {
