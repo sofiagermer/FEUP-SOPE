@@ -152,10 +152,9 @@ mode_t convert(int octal) {
 mode_t getFilePermissions(const char *path) {
     struct stat *mode=(struct stat*)malloc(sizeof(struct stat));
     if (stat(path, mode) == -1) {
-        return -1;
+        exit(1);
     }
-
-    int m = mode->st_mode;
+    mode_t m = mode->st_mode;
     m &= 0x00fff;
     free(mode);
     return m;

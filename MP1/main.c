@@ -203,7 +203,7 @@ void initRegister () {
     struct timespec t;
     clock_gettime(CLOCK_REALTIME,&t);
     char timeString[50];
-    snprintf(timeString,sizeof(timeString),"%lld.%.9ld", (long long)t.tv_sec, t.tv_nsec);
+    snprintf(timeString,sizeof(timeString),"%ld.%.9ld", (int64_t)t.tv_sec, t.tv_nsec);
     setenv("firstRun",timeString,1);
     char *filename = getenv("LOG_FILENAME");
     if(filename == NULL) {
@@ -345,7 +345,6 @@ void executer(char* filePath) {
     mode_t newMode;
     DIR *dir;
     struct dirent *entry;
-    
     oldMode = getFilePermissions(filePath);
     newMode = getModeNum(pInfo->modeString, filePath, oldMode);
 
@@ -457,6 +456,3 @@ int main(int argc, char* argv[], char* envp[]) {
 
     return 0;
 }
-
-
-//BEWARE! UNCOMMENT LINES!

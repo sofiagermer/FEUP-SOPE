@@ -1,11 +1,11 @@
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 #include <dirent.h>
 #include <stdbool.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 typedef struct {
     char** arguments;
@@ -15,5 +15,3 @@ typedef struct {
 
 bool isDirectory(const char* pathname); //Checks if file in pathname is a directory
 
-
-#endif //UTILS_H

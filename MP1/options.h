@@ -1,5 +1,4 @@
-#ifndef OPTIONS_H
-#define OPTIONS_H
+#pragma once
 
 #include <stdbool.h>
 #include <sys/stat.h>
@@ -21,4 +20,3 @@ void fromOctalToString(mode_t mode,char* permissions); //Converts mode to a stri
 void fourDigitOctal(mode_t mode,char *str);
 bool checkChanges(const mode_t oldMode, const mode_t newMode); //Checks if there were changes
 
-#endif //OPTIONS_H

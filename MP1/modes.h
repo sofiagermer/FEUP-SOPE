@@ -1,5 +1,4 @@
-#ifndef MODES_H
-#define MODES_H
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,5 +15,3 @@ mode_t getModeNum(const char* mode, const char* filePath, const mode_t oldMode);
 mode_t convert(int octal); //To convert octal do decimal
 mode_t getFilePermissions(const char *path); //Returns the permissions of the file being treated
 
-
-#endif //MODES_H
