@@ -1,4 +1,4 @@
-#include "headers/utils.h"
+#include "utils.h"
 
 
 bool isDirectory(const char* pathname) {

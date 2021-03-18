@@ -1,9 +1,9 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <time.h>
-#include "headers/modes.h"
-#include "headers/options.h"
-#include "headers/utils.h"
+#include "modes.h"
+#include "options.h"
+#include "utils.h"
 
 extern int errno;
 
@@ -94,7 +94,7 @@ void sigHandlerSigIntInitial(int signo) {
 
     regitExecution(getpid(), "SIGNAL_RECV", "SIGINT");
     printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
-    sleep(0.2);
+    sleep(0.5);
     printf("\nDO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)");
     scanf("%s", answer);
 
@@ -202,27 +202,29 @@ void setUpSigInt () {
 void initRegister () {
     struct timespec t;
     clock_gettime(CLOCK_REALTIME,&t);
+    char timeString[50];
+    snprintf(timeString,sizeof(timeString),"%lld.%.9ld", (long long)t.tv_sec, t.tv_nsec);
+    setenv("firstRun",timeString,1);
+    printf("merdou");
     char *filename = getenv("LOG_FILENAME");
     if(filename == NULL) {
-        fprintf(stderr, "Environment variable error: no such file or directory\n");
-        endProgram(1);
-    } else{
-        char timeString[50];
-        snprintf(timeString,sizeof(timeString),"%lld.%.9ld", (long long)t.tv_sec, t.tv_nsec);
-        setenv("firstRun",timeString,1);
-
-        //Opens a text file for both reading and writing. 
-        //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.
-        FILE *file = fopen(filename, "w+");
-        if(fclose(file) != 0) printf("Error closing register file \n");
+        //fprintf(stderr, "Environment variable error: no such file or directory\n");
+        //endProgram(1);
+        return;
     }
+    //Opens a text file for both reading and writing. 
+    //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.
+    FILE *file = fopen(filename, "w+");
+    if(fclose(file) != 0) printf("Error closing register file \n");
+    
 }
 
 void regitExecution( pid_t pid, char* event, char* info){
     char* filename = getenv("LOG_FILENAME");
     if(filename == NULL) {
-        fprintf(stderr, "Environment variable error: no such file or directory\n");
-        endProgram(1);
+        //fprintf(stderr, "Environment variable error: no such file or directory\n");
+        //endProgram(1);
+        return;
     }
     double initialTime = strtod(getenv("firstRun"),NULL);
     double time = getMiliSeconds(initialTime);

@@ -1,5 +1,4 @@
 #Project Makefile
-
 CC = gcc
 LIBS = -lm
 CFLAGS = -Wall
@@ -10,13 +9,13 @@ main.exe: main.o modes.o options.o utils.o
 main.o: main.c
 	$(CC) $(CFLAGS) -c main.c
 
-modes.o: headers/modes.h modes.c
+modes.o: modes.h modes.c
 	$(CC) $(CFLAGS) -c modes.c
 
-options.o: headers/options.h options.c
+options.o: options.h options.c
 	$(CC) $(CFLAGS) -c options.c
 
-utils.o: headers/utils.h utils.c
+utils.o: utils.h utils.c
 	$(CC) $(CFLAGS) -c utils.c
 
 clean:

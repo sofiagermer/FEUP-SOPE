@@ -1,4 +1,4 @@
-#include "headers/options.h"
+#include "options.h"
 
 
 void processOption(const char optFlag, Options* options) {
@@ -40,24 +40,24 @@ void fromOctalToString(mode_t mode,char* permissions) { //converts Octal to a st
 }
 
 void fourDigitOctal(mode_t mode,char *str){ //adds zeros, example input: 777-> return: "0777"
-
+    size_t size=sizeof(str);
     if(mode<=7){ // in Octal -> 0007
-        snprintf(str,5, "000%o", mode);
+        snprintf(str,size, "000%o", mode);
     } else if(mode<=63){ // in Octal -> 0070
-        snprintf(str,5, "00%o", mode);
+        snprintf(str,size, "00%o", mode);
     } else{     
-        snprintf(str,5, "0%o", mode);
+        snprintf(str,size, "0%o", mode);
     }
 }
 
 void diagnosticPrint(const char* filePath, mode_t oldMode,mode_t newMode, Options options) { 
-    char* oldPermissions = (char*) malloc(sizeof(10));
+    char oldPermissions [10];
     fromOctalToString(oldMode,oldPermissions);
-    char *newPermissions= (char*) malloc(sizeof(10));
+    char newPermissions[10];
     fromOctalToString(newMode,newPermissions);  
-    char *oldPermsFourDigit = (char*) malloc(sizeof(5));
+    char oldPermsFourDigit[5];
     fourDigitOctal(oldMode,oldPermsFourDigit);
-    char *newPermsFourDigit = (char*) malloc(sizeof(5));
+    char newPermsFourDigit [5];
     fourDigitOctal(newMode,newPermsFourDigit);
     if(checkChanges(oldMode, newMode) && (options.vflag == V || options.vflag == C))
         printf("mode of '%s' changed from %s (%s) to %s (%s)\n",filePath, oldPermsFourDigit, oldPermissions, newPermsFourDigit, newPermissions);
