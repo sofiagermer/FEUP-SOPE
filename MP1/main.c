@@ -205,7 +205,6 @@ void initRegister () {
     char timeString[50];
     snprintf(timeString,sizeof(timeString),"%lld.%.9ld", (long long)t.tv_sec, t.tv_nsec);
     setenv("firstRun",timeString,1);
-    printf("merdou");
     char *filename = getenv("LOG_FILENAME");
     if(filename == NULL) {
         //fprintf(stderr, "Environment variable error: no such file or directory\n");
