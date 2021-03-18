@@ -1,0 +1,42 @@
+[23935][      debug] Loading models took 55.455ms
+[23937][      debug] Sqlite write daemon: starting up
+[23937][      debug] Sqlite write daemon: set up complete, waiting for connections
+[23935][environment] CWD = /home/marhc/Documents/SOPE/FEUP-SOPE/MP1
+[23935][environment] No .inferconfig file found
+[23935][environment] Project root = /home/marhc/Documents/SOPE/FEUP-SOPE/MP1
+[23935][environment] INFER_ARGS =   @/tmp/args.tmp.12e51f
+[23935][environment] command line arguments:   /home/marhc/Documents/INFER/infer-linux64-v1.0.0/bin/infer
+[23935][environment]                           run -- make
+[23935][environment] Available memory at startup: 3587 MB
+[23935][environment] Active checkers: self-in-block (C/C++/ObjC), starvation (C/C++/ObjC, Java), uninit (C/C++/ObjC), siof (C/C++/ObjC), racerd (C/C++/ObjC, Java), liveness (C/C++/ObjC), inefficient-keyset-iterator (Java), fragment-retains-view (Java), biabduction (C/C++/ObjC, Java)
+[23935][environment] Scheduler: file
+[23935][environment] Cores used: 4
+[23935][environment] Infer version v1.0.0
+[23935][environment] Copyright 2009 - present Facebook. All Rights Reserved.
+[23935][environment] 
+[23935][   progress] Capturing in make/cc mode...
+[23935][environment] Running command make with env:
+[23935][environment] (Extend((PATH /home/marhc/Documents/INFER/infer-linux64-v1.0.0/lib/infer/infer/bin/../lib/wrappers:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin)(INFER_OLD_PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin)))
+[23935][environment] 
+
+[23939][environment] CWD = /home/marhc/Documents/SOPE/FEUP-SOPE/MP1
+[23939][environment] No .inferconfig file found
+[23939][environment] Project root = /home/marhc/Documents/SOPE/FEUP-SOPE/MP1
+[23939][environment] INFER_ARGS =   @/tmp/args.tmp.a5f612
+[23939][environment] command line arguments:   gcc -Wall -c main.c
+[23939][environment] Available memory at startup: 3554 MB
+[23939][environment] Active checkers: self-in-block (C/C++/ObjC), starvation (C/C++/ObjC, Java), uninit (C/C++/ObjC), siof (C/C++/ObjC), racerd (C/C++/ObjC, Java), liveness (C/C++/ObjC), inefficient-keyset-iterator (Java), fragment-retains-view (Java), biabduction (C/C++/ObjC, Java)
+[23939][      debug] 
+[23939][      debug] *** Beginning capture of file /home/marhc/Documents/SOPE/FEUP-SOPE/MP1/main.c ***
+[23939][      debug] 
+[23939][environment] Scheduler: file
+[23939][environment] Cores used: 4
+[23939][environment] [23935][ extern err] *** capture command failed:
+*** make
+*** exited with code 2
+
+[23935][ extern err] Raised at Stdlib__scanf.bad_input in file "scanf.ml" (inlined), line 444, characters 18-40
+Called from Stdlib__scanf.scanf_bad_input in file "scanf.ml", line 1164, characters 4-75
+Called from IBase__Utils.get_available_memory_MB.scan_for_expected_output in file "src/base/Utils.ml", line 439, characters 10-86
+
+[23937][      debug] Sqlite write daemon: terminating

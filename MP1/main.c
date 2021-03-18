@@ -3,243 +3,20 @@
 #include <time.h>
 #include "modes.h"
 #include "options.h"
-#include "utils.h"
+#include "signal_handling.h"
+
 
 extern int errno;
-
-typedef struct {
-    Options options;
-    int noFilesFound;
-    int noFilesChanged;
-    Arguments args;
-    char* filePath;
-    char* modeString;
-    bool isInitial;
-    bool isParent;
-    bool sleep;
-    int* childrenPIDs;
-    int noChildren;
-} ProcessInfo;
 
 ProcessInfo* pInfo;
 
 //BIGGER FUNCS
 void parse(); //Parses arguments
 void executer(char* fileName); //Recursive funtion
-
-//AUXILIARY FUNCS
-void sigHandlerSigInt(int signo); //Handles ctrlC
-void sigHandlerSigIntInitial(int signo);
-void setUpSigInt(); //Set up the signal handling
-double getMiliSeconds(double initialTime); //Returns time in miliseconds since initialTime
-void regitExecution(pid_t pid, char* event, char* info); // Writes on execution register
 void endProgram(); //To kill everything
 void initializeProcess(char* argv[], int argc); //To initialize the struct and define signal handlers
 void makeNewArgs(char* newArgs[], char* fileName); //To fabricate the arguments for the new process
 void initRegister();
-void setUpOtherSigs();
-void setUpSigAlrm();
-void sigHandlerSigAlrm(int signo);
-void setUpSigTerm();
-void sigHandlerSigTerm(int signo);
-void registSignalSent(char* signalSent, int pid);
-
-double getMiliSeconds(double initialTime){
-    struct timespec t;
-    clock_gettime(CLOCK_REALTIME,&t);
-    char aux[20];
-    snprintf(aux,sizeof(aux),"0.%ld",t.tv_nsec);
-    double curTime=(double)t.tv_sec+strtod(aux,NULL);
-    return (double)(curTime - initialTime)*1000;
-}
-
-void sigHandlerSigInt(int signo) {
-    regitExecution(getpid(), "SIGNAL_RECV", "SIGINT");
-    printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d\n",
-     getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
-    pInfo->sleep = true;
-    while(pInfo->sleep) sleep(1);
-}
-
-void sigHandlerSigAlrm(int signo) {
-    regitExecution(getpid(), "SIGNAL_RECV", "SIGALRM");
-    pInfo->sleep = false;
-    if (pInfo->isParent) {
-        for (unsigned int i = 0; i < pInfo->noChildren; i++) {
-            kill(pInfo->childrenPIDs[i], SIGALRM);   
-            registSignalSent("SIGALRM", pInfo->childrenPIDs[i]);
-        }
-    }
-}
-
-void sigHandlerSigTerm(int signo) {
-    regitExecution(getpid(), "SIGNAL_RECV", "SIGTERM");
-    if (pInfo->isParent) {
-        for (unsigned int i = 0; i < pInfo->noChildren; i++) {
-            kill(pInfo->childrenPIDs[i], SIGTERM);   
-            registSignalSent("SIGTERM", pInfo->childrenPIDs[i]);
-        }
-    }
-    endProgram(1);
-}
-
-void registSignalSent(char* signalSent, int pid) {
-    char info[20];
-    snprintf(info,sizeof(info), "%s : %d", signalSent, pid);
-    regitExecution(getpid(), "SIGNAL_SENT", info);
-}
-
-void sigHandlerSigIntInitial(int signo) {
-    char answer[2];
-
-    regitExecution(getpid(), "SIGNAL_RECV", "SIGINT");
-    printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
-    sleep(0.5);
-    printf("\nDO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)");
-    scanf("%s", answer);
-
-    while(1) {
-        if(strcmp(answer,"y") == 0) {
-            for (unsigned int i = 0; i < pInfo->noChildren; i++) {
-                kill(pInfo->childrenPIDs[i], SIGALRM);
-                registSignalSent("SIGALRM", pInfo->childrenPIDs[i]);
-            }
-            break;
-        } else if (strcmp(answer,"n") == 0) {
-            for (unsigned int i = 0; i < pInfo->noChildren; i++) {
-                kill(pInfo->childrenPIDs[i], SIGTERM);
-                registSignalSent("SIGTERM", pInfo->childrenPIDs[i]);
-            }
-            endProgram(1);
-        } else {
-            printf("NOT A VALID ANSWER\n");
-        }
-    } 
-}
-
-void setUpSigHandlers () {
-    setUpSigAlrm();
-    setUpOtherSigs();
-    setUpSigInt();
-    setUpSigTerm();
-}
-
-void setUpOtherSigs() {
-    /*struct sigaction new, old;
-    sigset_t smask;
-    if (sigemptyset(&smask) == -1) {
-        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
-        exit(1);
-    }
-    new.sa_mask = smask;
-    new.sa_flags = 0;
-    new.sa_handler = sigHandlerOtherSigs;
-    if (sigaction(SIGIO, &new, &old) == -1) {
-        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
-        exit(1);
-    }
-    if (sigaction(SIGPIPE, &new, &old) == -1) {
-        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
-        exit(1);
-    }*/
-
-}
-
-void setUpSigTerm() {
-    struct sigaction new, old;
-    sigset_t smask;
-    if (sigemptyset(&smask) == -1) {
-        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
-        exit(1);
-    }
-    new.sa_mask = smask;
-    new.sa_flags = 0;
-    new.sa_handler = sigHandlerSigTerm;
-    if (sigaction(SIGTERM, &new, &old) == -1) {
-        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
-        exit(1);
-    }
-}
-
-void setUpSigAlrm() {
-    struct sigaction new, old;
-    sigset_t smask;
-    if (sigemptyset(&smask) == -1) {
-        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
-        exit(1);
-    }
-    new.sa_mask = smask;
-    new.sa_flags = 0;
-    if (pInfo->isInitial)
-        new.sa_handler = sigHandlerSigAlrm;
-    else
-        new.sa_handler = sigHandlerSigAlrm;
-    if (sigaction(SIGALRM, &new, &old) == -1) {
-        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
-        exit(1);
-    }
-}
-
-void setUpSigInt () {
-    struct sigaction new, old;
-    sigset_t smask;
-    if (sigemptyset(&smask) == -1) {
-        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
-        exit(1);
-    }
-    new.sa_mask = smask;
-    new.sa_flags = 0;
-    if (pInfo->isInitial)
-        new.sa_handler = sigHandlerSigIntInitial;
-    else
-        new.sa_handler = sigHandlerSigInt;
-    if (sigaction(SIGINT, &new, &old) == -1) {
-        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
-        exit(1);
-    }
-}
-
-void initRegister () {
-    struct timespec t;
-    clock_gettime(CLOCK_REALTIME,&t);
-    char timeString[50];
-    snprintf(timeString,sizeof(timeString),"%ld.%.9ld", (int64_t)t.tv_sec, t.tv_nsec);
-    setenv("firstRun",timeString,1);
-    char *filename = getenv("LOG_FILENAME");
-    if(filename == NULL) {
-        //fprintf(stderr, "Environment variable error: no such file or directory\n");
-        //endProgram(1);
-        return;
-    }
-    //Opens a text file for both reading and writing. 
-    //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.
-    FILE *file = fopen(filename, "w+");
-    if(fclose(file) != 0) printf("Error closing register file \n");
-    
-}
-
-void regitExecution( pid_t pid, char* event, char* info){
-    char* filename = getenv("LOG_FILENAME");
-    if(filename == NULL) {
-        //fprintf(stderr, "Environment variable error: no such file or directory\n");
-        //endProgram(1);
-        return;
-    }
-    double initialTime = strtod(getenv("firstRun"),NULL);
-    double time = getMiliSeconds(initialTime);
-
-    FILE *file = fopen(filename, "a");
-    char* newBuffer = (char*) malloc(300 * sizeof(char));
-    setvbuf(file, newBuffer, _IOLBF, 300);
-    fprintf(file, "%f ; %d ; %s ; %s\n", time, pid, event, info);
-    free(newBuffer);
-
-    if(fclose(file) != 0) {
-        fprintf(stderr, "Error closing register file: %s\n", strerror(errno));
-        endProgram(1);
-    }
-
-}
 
 void parse() { 
 
@@ -278,20 +55,6 @@ void becomingAParent() {
     }
 }
 
-void registProcessExit(int exitStatus) {
-    char info[10];
-    snprintf(info,sizeof(info), "%d", exitStatus);
-    regitExecution(getpid(), "PROC_EXIT", info);
-}
-
-void registProcessCreation(char* args[]) {
-    char info[100] = "";
-    for (unsigned int i = 0; i < pInfo->args.nArgs; i++) {
-        snprintf(info,sizeof(info),"%s ,",args[i]);
-    }
-    regitExecution(getpid(), "PROC_CREAT" , info);
-
-}
 
 void hasAChild(char* newPath) {
     //GETTING READY TO SAVE CHILDREN'S PIDS
@@ -328,16 +91,6 @@ void hasAChild(char* newPath) {
     }
 }
 
-void registFileModf(mode_t oldMode, mode_t newMode, char* filePath) {
-    char* fourDigitOldMode = (char*)malloc(sizeof(oldMode));
-    fourDigitOctal(oldMode,fourDigitOldMode);
-    char* fourDigitNewMode = (char*)malloc(sizeof(newMode));
-    fourDigitOctal(newMode,fourDigitNewMode);
-    size_t size=strlen(filePath)+strlen(fourDigitOldMode) + strlen(fourDigitNewMode) + 20;
-    char *info=(char*)malloc(size); 
-    snprintf(info,size, "%s : %s : %s", filePath, fourDigitOldMode, fourDigitNewMode);
-    regitExecution(getpid(), "FILE_MODF", info); 
-}
 
 void executer(char* filePath) { 
 
@@ -417,6 +170,8 @@ void initializeProcess(char* argv[], int argc) {
     pInfo->args.nArgs = argc;  
     pInfo->childrenPIDs = NULL;
     pInfo->noChildren = 0;
+    pInfo->options.recursive = false;
+    pInfo->options.vflag = NONE;
      
 
     setUpSigHandlers();
@@ -450,7 +205,7 @@ int main(int argc, char* argv[], char* envp[]) {
     
     wait(NULL); //Waits for child processes to finish
 
-    while(1) sleep(1);
+    //while(1) sleep(1);
     endProgram(0);
     
 

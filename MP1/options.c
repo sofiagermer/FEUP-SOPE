@@ -1,4 +1,5 @@
 #include "options.h"
+#include "utils.h"
 
 
 void processOption(const char optFlag, Options* options) {
@@ -40,13 +41,13 @@ void fromOctalToString(mode_t mode,char* permissions) { //converts Octal to a st
 }
 
 void fourDigitOctal(mode_t mode,char *str){ //adds zeros, example input: 777-> return: "0777"
-    size_t size=sizeof(str);
-    if(mode<=7){ // in Octal -> 0007
-        snprintf(str,size, "000%o", mode);
+    //size_t size = sizeof(str);
+    if(mode <= 7){ // in Octal -> 0007
+        sprintf(str, "000%o", mode);
     } else if(mode<=63){ // in Octal -> 0070
-        snprintf(str,size, "00%o", mode);
+        sprintf(str, "00%o", mode);
     } else{     
-        snprintf(str,size, "0%o", mode);
+        sprintf(str,"0%o", mode);
     }
 }
 

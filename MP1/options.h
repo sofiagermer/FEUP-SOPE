@@ -4,14 +4,9 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <string.h>
 
-typedef enum {C, V, NONE} Verbose;
-
-typedef struct {
-    Verbose vflag;
-    bool recursive;
-} Options;
 
 void diagnosticPrint(const char* filePath, mode_t oldMode, mode_t newMode, Options options); //Verbose messages
 void processOption(const char optFlag, Options* options); //Processes an option
