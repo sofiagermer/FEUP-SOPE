@@ -32,7 +32,6 @@ typedef struct {
     char* modeString;
     bool isInitial;
     bool isParent;
-    bool sleep;
     int* childrenPIDs;
     int noChildren;
 } ProcessInfo;
@@ -47,4 +46,6 @@ void fromOctalToString(mode_t mode,char* permissions); //Converts mode to a stri
 void fourDigitOctal(mode_t mode,char *str);
 bool checkChanges(const mode_t oldMode, const mode_t newMode); //Checks if there were changes
 void endProgram(); //To kill everything
+void hasAChild(char* newPath);
+void makeNewArgs(char* newArgs[], char* fileName);
 

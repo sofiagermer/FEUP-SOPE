@@ -94,3 +94,56 @@ bool checkChanges(const mode_t oldMode, const mode_t newMode) {
     if (oldMode == newMode) return false;
     else return true;
 }
+
+void makeNewArgs(char* newArgs[], char* fileName) {
+    for (unsigned int i = 0; i <= pInfo->args.nArgs; i++) {
+        if (i == pInfo->args.fileNameIndex)
+            newArgs[i] = fileName;
+        else    
+            newArgs[i] = pInfo->args.arguments[i];
+        if (i == pInfo->args.nArgs)
+            newArgs[i] = NULL;
+    }
+}
+
+void hasAChild(char* newPath) {
+    //GETTING READY TO SAVE CHILDREN'S PIDS
+    if (!pInfo->isParent) {
+        pInfo->isParent = true;
+        pInfo->childrenPIDs = (int*) malloc(100 * sizeof(int));
+    }
+    
+    char* args[pInfo->args.nArgs + 1];
+    makeNewArgs(args, newPath);
+    registProcessCreation(args);
+
+    int id = fork();
+    switch (id) {
+        case 0: {
+            registProcessCreation(args);
+            char* args[pInfo->args.nArgs + 1];
+            makeNewArgs(args, newPath);
+            
+            if (execvp(args[0], args) == -1) {
+                fprintf(stderr, "Error with execvpe: %s", strerror(errno));
+                exit(1);
+            }
+            break;
+        }
+        case -1:{
+            fprintf(stderr, "Error with fork:%s\n", strerror(errno));
+            registProcessExit(1);
+            exit(1);
+        }
+        default: {
+            //Acrescentamos estas duas linhas
+            if(pInfo->childrenPIDs == NULL) {
+                fprintf(stderr, "Error: process has no children\n");
+                endProgram(1);
+            }
+            pInfo->childrenPIDs[pInfo->noChildren] = id;
+            pInfo->noChildren++;
+            break;
+        }
+    }
+}

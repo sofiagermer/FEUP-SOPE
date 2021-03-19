@@ -1,6 +1,5 @@
 #include <sys/wait.h>
-#include <signal.h>
-#include <time.h>
+
 #include "modes.h"
 #include "utils.h"
 #include "signal_handling.h"
@@ -14,8 +13,6 @@ ProcessInfo* pInfo;
 void parse(); //Parses arguments
 void executer(char* fileName); //Recursive funtion
 void initializeProcess(char* argv[], int argc); //To initialize the struct and define signal handlers
-void makeNewArgs(char* newArgs[], char* fileName); //To fabricate the arguments for the new process
-void initRegister();
 
 void parse() { 
 
@@ -35,65 +32,6 @@ void parse() {
         }    
     }    
 }
-
-void makeNewArgs(char* newArgs[], char* fileName) {
-    for (unsigned int i = 0; i <= pInfo->args.nArgs; i++) {
-        if (i == pInfo->args.fileNameIndex)
-            newArgs[i] = fileName;
-        else    
-            newArgs[i] = pInfo->args.arguments[i];
-        if (i == pInfo->args.nArgs)
-            newArgs[i] = NULL;
-    }
-}
-
-void becomingAParent() {
-    if (!pInfo->isParent) {
-        pInfo->isParent = true;
-        pInfo->childrenPIDs = (int*) malloc(100 * sizeof(int));
-    }
-}
-
-
-void hasAChild(char* newPath) {
-    //GETTING READY TO SAVE CHILDREN'S PIDS
-    becomingAParent();
-    
-    char* args[pInfo->args.nArgs + 1];
-    makeNewArgs(args, newPath);
-    registProcessCreation(args);
-
-    int id = fork();
-    switch (id) {
-        case 0: {
-            registProcessCreation(args);
-            char* args[pInfo->args.nArgs + 1];
-            makeNewArgs(args, newPath);
-            
-            if (execvp(args[0], args) == -1) {
-                fprintf(stderr, "Error with execvpe: %s", strerror(errno));
-                exit(1);
-            }
-            break;
-        }
-        case -1:{
-            fprintf(stderr, "Error with fork:%s\n", strerror(errno));
-            registProcessExit(1);
-            exit(1);
-        }
-        default: {
-            //Acrescentamos estas duas linhas
-            if(pInfo->childrenPIDs == NULL) {
-                fprintf(stderr, "Error: process has no children\n");
-                endProgram(1);
-            }
-            pInfo->childrenPIDs[pInfo->noChildren] = id;
-            pInfo->noChildren++;
-            break;
-        }
-    }
-}
-
 
 void executer(char* filePath) { 
 
@@ -182,7 +120,6 @@ void initializeProcess(char* argv[], int argc) {
     setUpSigHandlers();
 }
 
-
 int main(int argc, char* argv[], char* envp[]) {
     //Initialize Process
     initializeProcess(argv, argc);
@@ -195,7 +132,7 @@ int main(int argc, char* argv[], char* envp[]) {
     
     
     //Waits for child processes to finish
-    for(int i=0;i<pInfo->noChildren;i++){
+    for(int i = 0; i < pInfo->noChildren; i++){
         wait(NULL);
     }
     while(1) sleep(1);
