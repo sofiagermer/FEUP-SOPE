@@ -1,21 +1,4 @@
-54.773808 ; 8790 ; FILE_MODF ; testDir : 0777 : 0777
-89.072943 ; 8790 ; FILE_MODF ; testDir/testfile3.txt : 0777 : 0777
-90.086222 ; 8790 ; FILE_MODF ; testDir/testfile4.txt : 0777 : 0777
-93.373299 ; 8790 ; PROC_CREAT ; testDir/testfolder43 ,
-96.547842 ; 8790 ; FILE_MODF ; testDir/testfile2.txt : 0777 : 0777
-97.620487 ; 8790 ; PROC_CREAT ; testDir/testDir2 ,
-98.778725 ; 8791 ; PROC_CREAT ; testDir/testfolder43 ,
-98.776102 ; 8790 ; FILE_MODF ; testDir/-vNew Empty.txt : 0777 : 0777
-102.040768 ; 8791 ; FILE_MODF ; testDir/testfolder43 : 0777 : 0777
-102.124453 ; 8791 ; PROC_EXIT ; 0
-101.980448 ; 8792 ; PROC_CREAT ; testDir/testDir2 ,
-107.175112 ; 8792 ; FILE_MODF ; testDir/testDir2 : 0777 : 0777
-107.258081 ; 8792 ; FILE_MODF ; testDir/testDir2/testfile6.txt : 0777 : 0777
-107.298136 ; 8792 ; FILE_MODF ; testDir/testDir2/testfile5.txt : 0777 : 0777
-107.325077 ; 8792 ; PROC_CREAT ; testDir/testDir2/testDir3 ,
-107.461691 ; 8793 ; PROC_CREAT ; testDir/testDir2/testDir3 ,
-108.052731 ; 8793 ; FILE_MODF ; testDir/testDir2/testDir3 : 0777 : 0777
-108.114004 ; 8793 ; FILE_MODF ; testDir/testDir2/testDir3/testfile7.txt : 0777 : 0777
-108.139992 ; 8793 ; PROC_EXIT ; 0
-108.258963 ; 8792 ; PROC_EXIT ; 0
-109.360695 ; 8790 ; PROC_EXIT ; 0
+39.294243 ; 18661 ; FILE_MODF ; testDir : 0777 : 0777
+757.961273 ; 18661 ; SIGNAL_RECV ; SIGINT
+3350.148678 ; 18661 ; SIGNAL_RECV ; SIGTERM
+3350.707531 ; 18661 ; PROC_EXIT ; 1

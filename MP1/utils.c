@@ -1,6 +1,5 @@
 #include "utils.h"
 
-extern ProcessInfo* pInfo;
 
 bool isDirectory(const char* pathname) {
 
@@ -44,12 +43,11 @@ void processOption(const char optFlag, Options* options) {
     } 
 }
 
-int get_bit(int bits, int pos) { //returns the value of the bit at position pos of the value bits
+int get_bit(int bits, int pos) { 
    return (bits >> pos) & 0x01;
 }
 
-
-void fromOctalToString(mode_t mode,char* permissions) { //converts Octal to a string with rwx notation
+void fromOctalToString(mode_t mode,char* permissions) { 
     for(int i=0;i<9;i++){
         if((i==0||i==3||i==6)&&get_bit(mode,i)==1){
             permissions[i]='r';
@@ -64,7 +62,7 @@ void fromOctalToString(mode_t mode,char* permissions) { //converts Octal to a st
     permissions[9]='\0';
 }
 
-void fourDigitOctal(mode_t mode,char *str){ //adds zeros, example input: 777-> return: "0777"
+void fourDigitOctal(mode_t mode,char *str){ 
     size_t size = sizeof(str);
     if(mode <= 7){ // in Octal -> 0007
         snprintf(str,size, "000%o", mode);
@@ -76,6 +74,8 @@ void fourDigitOctal(mode_t mode,char *str){ //adds zeros, example input: 777-> r
 }
 
 void diagnosticPrint(const char* filePath, mode_t oldMode,mode_t newMode) { 
+
+    //Get numerical and schematichal string of old and new modes
     char oldPermissions [10];
     fromOctalToString(oldMode,oldPermissions);
     char newPermissions[10];
@@ -84,6 +84,8 @@ void diagnosticPrint(const char* filePath, mode_t oldMode,mode_t newMode) {
     fourDigitOctal(oldMode,oldPermsFourDigit);
     char newPermsFourDigit [5];
     fourDigitOctal(newMode,newPermsFourDigit);
+
+    //Print the message
     if(checkChanges(oldMode, newMode) && (pInfo->options.vflag == V || pInfo->options.vflag == C))
         printf("mode of '%s' changed from %s (%s) to %s (%s)\n",filePath, oldPermsFourDigit, oldPermissions, newPermsFourDigit, newPermissions);
     else if(!checkChanges(oldMode,newMode) && pInfo->options.vflag == V)
@@ -146,4 +148,13 @@ void hasAChild(char* newPath) {
             break;
         }
     }
+}
+
+double getMiliSeconds(double initialTime) {
+    struct timespec t;
+    clock_gettime(CLOCK_REALTIME,&t);
+    char aux[20];
+    snprintf(aux,sizeof(aux),"0.%ld",t.tv_nsec);
+    double curTime=(double)t.tv_sec+strtod(aux,NULL);
+    return (double)(curTime - initialTime)*1000;
 }

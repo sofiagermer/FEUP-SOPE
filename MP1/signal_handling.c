@@ -1,103 +1,107 @@
 #include "signal_handling.h"
 
 void sigHandlerSigInt(int signo) {
+    //Records the receivement
     regitExecution(getpid(), "SIGNAL_RECV", "SIGINT");
-    printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d\n",
+    printf("PID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d\n",
      getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
-    wait(NULL);
+    kill(getpid(), SIGTSTP);
+    printf("Im outtie%d\n", getpid());
 }
 
 void sigHandlerSigIntInitial(int signo) {
     char answer[2];
 
+    //Records the receivement
     regitExecution(getpid(), "SIGNAL_RECV", "SIGINT");
-    printf("\nPID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
+    printf("PID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
     sleep(1);
-    printf("\nDO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)");
+    printf("DO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)");
     scanf("%s", answer);
 
+    //Asks if the program should continue and acts accordingly
     while(1) {
         if(strcmp(answer,"y") == 0) {
-            for (unsigned int i = 0; i < pInfo->noChildren; i++) {
-                kill(pInfo->childrenPIDs[i], SIGALRM);
-                registSignalSent("SIGALRM", pInfo->childrenPIDs[i]);
-            }
+            kill(0, SIGCONT);
             break;
         } else if (strcmp(answer,"n") == 0) {
-            for (unsigned int i = 0; i < pInfo->noChildren; i++) {
-                kill(pInfo->childrenPIDs[i], SIGTERM);
-                registSignalSent("SIGTERM", pInfo->childrenPIDs[i]);
-            }
+            kill(0, SIGTERM);
             endProgram(1);
-        } else 
+        } else {
             printf("NOT A VALID ANSWER\n");
+        }
     } 
 }
 
+void sigHandlerSigCont(int signo) {
+    //Records the receivement
+    regitExecution(getpid(), "SIGNAL_RECV", "SIGCONT");
+}
+
 void sigHandlerSigAlrm(int signo) {
+    //Records the receivement
     regitExecution(getpid(), "SIGNAL_RECV", "SIGALRM");
-    if (pInfo->isParent) {
-        for (unsigned int i = 0; i < pInfo->noChildren; i++) {
-            kill(pInfo->childrenPIDs[i], SIGALRM);   
-            registSignalSent("SIGALRM", pInfo->childrenPIDs[i]);
-        }
-    }
-}
-
-void sigHandlerSigAlrmInit(int signo) {
-    regitExecution(getpid(), "SIGNAL_RECV", "SIGALRM");
-    endProgram(1);
-}
-
-void sigHandlerSigTermInit(int signo) {
-    regitExecution(getpid(), "SIGNAL_RECV", "SIGTERM");
     endProgram(1);
 }
 
 void sigHandlerSigTerm(int signo) {
     regitExecution(getpid(), "SIGNAL_RECV", "SIGTERM");
-    if (pInfo->isParent) {
-        for (unsigned int i = 0; i < pInfo->noChildren; i++) {
-            kill(pInfo->childrenPIDs[i], SIGTERM);   
-            registSignalSent("SIGTERM", pInfo->childrenPIDs[i]);
-        }
-    }
     endProgram(1);
 }
 
 void sigHandlerSigHup(int signo) {
+    //Records the receivement
     regitExecution(getpid(), "SIGNAL_RECV", "SIGHUP");
     endProgram(1);
 }
 
 void sigHandlerSigIO(int signo) {
+    //Records the receivement
     regitExecution(getpid(), "SIGNAL_RECV", "SIGIO");
     endProgram(1);
 }
 
 void sigHandlerSigPipe(int signo) {
+    //Records the receivement
     regitExecution(getpid(), "SIGNAL_RECV", "SIGPIPE");
     endProgram(1);
 }
 
-void sigHandlerSigSegv(int signo) {
-    regitExecution(getpid(), "SIGNAL_RECV", "SIGSEGV");
-    endProgram(1);
-}
-
 void sigHandlerSigUsr1(int signo) {
+    //Records the receivement
     regitExecution(getpid(), "SIGNAL_RECV", "SIGUSR1");
     endProgram(1);
 }
 
 void sigHandlerSigUsr2(int signo) {
+    //Records the receivement
     regitExecution(getpid(), "SIGNAL_RECV", "SIGUSR2");
     endProgram(1);
+}
+
+void setUpSigCont() {
+    struct sigaction new, old;
+    sigset_t smask;
+
+    //Blocks no signals
+    if (sigemptyset(&smask) == -1) {
+        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
+        endProgram(1);
+    }
+    new.sa_mask = smask;
+    new.sa_flags = 0;
+    new.sa_handler = sigHandlerSigCont; //handler
+    if (sigaction(SIGCONT, &new, &old) == -1) {
+        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
+        endProgram(1);
+    }
 }
 
 void setUpSigPipe() {
     struct sigaction new, old;
     sigset_t smask;
+
+    //Blocks no signals
     if (sigemptyset(&smask) == -1) {
         fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
         endProgram(1);
@@ -114,6 +118,8 @@ void setUpSigPipe() {
 void setUpSigUsr1() {
     struct sigaction new, old;
     sigset_t smask;
+
+    //Blocks no signals
     if (sigemptyset(&smask) == -1) {
         fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
         endProgram(1);
@@ -130,6 +136,8 @@ void setUpSigUsr1() {
 void setUpSigUsr2() {
     struct sigaction new, old;
     sigset_t smask;
+
+    //Blocks no signals
     if (sigemptyset(&smask) == -1) {
         fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
         endProgram(1);
@@ -146,6 +154,8 @@ void setUpSigUsr2() {
 void setUpSigHup() {
     struct sigaction new, old;
     sigset_t smask;
+
+    //Blocks no signals
     if (sigemptyset(&smask) == -1) {
         fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
         endProgram(1);
@@ -159,25 +169,11 @@ void setUpSigHup() {
     }
 }
 
-void setUpSigSegv() {
-    struct sigaction new, old;
-    sigset_t smask;
-    if (sigemptyset(&smask) == -1) {
-        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
-        endProgram(1);
-    }
-    new.sa_mask = smask;
-    new.sa_flags = 0;
-    new.sa_handler = sigHandlerSigSegv;
-    if (sigaction(SIGSEGV, &new, &old) == -1) {
-        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
-        endProgram(1);
-    }
-}
-
 void setUpSigIO() {
     struct sigaction new, old;
     sigset_t smask;
+
+    //Blocks no signals
     if (sigemptyset(&smask) == -1) {
         fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
         endProgram(1);
@@ -194,16 +190,15 @@ void setUpSigIO() {
 void setUpSigTerm() {
     struct sigaction new, old;
     sigset_t smask;
+
+    //Blocks no signals
     if (sigemptyset(&smask) == -1) {
         fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
         endProgram(1);
     }
     new.sa_mask = smask;
     new.sa_flags = 0;
-    if (pInfo->isInitial) 
-        new.sa_handler = sigHandlerSigTermInit;
-    else
-        new.sa_handler = sigHandlerSigTerm;
+    new.sa_handler = sigHandlerSigTerm;
     if (sigaction(SIGTERM, &new, &old) == -1) {
         fprintf(stderr, "Error with sigaction: %s", strerror(errno));
         endProgram(1);
@@ -213,17 +208,37 @@ void setUpSigTerm() {
 void setUpSigAlrm() {
     struct sigaction new, old;
     sigset_t smask;
+
+    //Blocks no signals
     if (sigemptyset(&smask) == -1) {
         fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
         endProgram(1);
     }
     new.sa_mask = smask;
     new.sa_flags = 0;
-    if (pInfo->isInitial)
-        new.sa_handler = sigHandlerSigAlrmInit;
-    else
-        new.sa_handler = sigHandlerSigAlrm;
+    new.sa_handler = sigHandlerSigAlrm;
     if (sigaction(SIGALRM, &new, &old) == -1) {
+        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
+        endProgram(1);
+    }
+}
+
+void setUpSigInt () {
+    struct sigaction new, old;
+    sigset_t smask;
+
+    //Blocks no signals
+    if (sigemptyset(&smask) == -1) {
+        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
+        endProgram(1);
+    }
+    new.sa_mask = smask;
+    new.sa_flags = SA_NODEFER | SA_RESTART;
+    if (pInfo->isInitial)
+        new.sa_handler = sigHandlerSigIntInitial; //If first process
+    else
+        new.sa_handler = sigHandlerSigInt; //If not
+    if (sigaction(SIGINT, &new, &old) == -1) {
         fprintf(stderr, "Error with sigaction: %s", strerror(errno));
         endProgram(1);
     }
@@ -233,29 +248,11 @@ void setUpSigHandlers () {
     setUpSigAlrm();
     setUpSigInt();
     setUpSigTerm();
-    setUpSigSegv();
     setUpSigPipe();
     setUpSigIO();
     setUpSigUsr1();
     setUpSigHup();
     setUpSigUsr2();
+    setUpSigCont();
 }
 
-void setUpSigInt () {
-    struct sigaction new, old;
-    sigset_t smask;
-    if (sigemptyset(&smask) == -1) {
-        fprintf(stderr, "Failed to set empty signals mask: %s\n", strerror(errno));
-        endProgram(1);
-    }
-    new.sa_mask = smask;
-    new.sa_flags = SA_NODEFER | SA_RESTART;
-    if (pInfo->isInitial)
-        new.sa_handler = sigHandlerSigIntInitial;
-    else
-        new.sa_handler = sigHandlerSigInt;
-    if (sigaction(SIGINT, &new, &old) == -1) {
-        fprintf(stderr, "Error with sigaction: %s", strerror(errno));
-        endProgram(1);
-    }
-}

@@ -15,24 +15,20 @@
 extern int errno;
 extern ProcessInfo* pInfo;
 
-void sigHandlerSigInt(int signo);
-void sigHandlerSigIntInitial(int signo);
-void sigHandlerSigTerm(int signo);
-void sigHandlerSigAlrm(int signo);
-void sigHandlerSigUsr1(int signo);
-void sigHandlerSigHuv(int signo);
-void sigHandlerSigPipe(int signo);
-void sigHandlerSigIO(int signo);
-void sigHandlerSigSegv(int signo);
-void sigHandlerSigTermInit(int signo);
-void sigHandlerSigAlrmInit(int signo);
-void setUpSigAlrm();
-void setUpSigTerm();
-void setUpSigIO();
-void setUpSigPipe();
-void setUpSigUsr1();
-void setUpSigUsr2();
-void setUpSigSegv();
-void setUpSigHup();
-void setUpSigInt ();
-void setUpSigHandlers ();
+void sigHandlerSigInt(int signo); //Handler for SIGINT
+void sigHandlerSigIntInitial(int signo); //Handler for SIGINT for initialprocess
+void sigHandlerSigTerm(int signo); //Handler for SIGTERM
+void sigHandlerSigAlrm(int signo); //Handler for SIGALRM
+void sigHandlerSigUsr1(int signo); //Handler for SIGUSR1
+void sigHandlerSigHuv(int signo); //Handler for SIGHUV
+void sigHandlerSigPipe(int signo); //Handler for SIGPIPE
+void sigHandlerSigIO(int signo); //Handler for SIGIO
+void setUpSigAlrm(); //Sets up the handler
+void setUpSigTerm(); //Sets up the handler
+void setUpSigIO(); //Sets up the handler
+void setUpSigPipe(); //Sets up the handler
+void setUpSigUsr1(); //Sets up the handler
+void setUpSigUsr2();; //Sets up the handler
+void setUpSigHup(); //Sets up the handler
+void setUpSigInt (); //Sets up the handler
+void setUpSigHandlers (); //Calls all the setuppers

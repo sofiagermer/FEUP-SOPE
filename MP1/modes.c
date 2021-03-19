@@ -3,6 +3,8 @@
 
 
 bool checkOctalMode(const char* octalMode) {
+
+    //Checks if the first one is a 0, if the string has a valid size and if the values are valid (0-7)
     if (strlen(octalMode) > 4) return false;
     if (octalMode[0] != '0') return false;
     if (octalMode[1] == '0' || octalMode[1] == '1' || octalMode[1] == '2' || octalMode[1] == '3' || octalMode[1] == '4' || octalMode[1] == '5' || octalMode[1] == '6' || octalMode[1] == '7'){
@@ -18,13 +20,16 @@ bool checkOctalMode(const char* octalMode) {
 mode_t getModeNum(const char* mode, const char* filePath, const mode_t oldMode) {
     mode_t modeNum;
     int octal;
+
+    //In octal
     if ((octal = atoi(mode)) != 0) {
         if (!checkOctalMode(mode)) {
             fprintf(stderr, "Invalid format for octal mode:%s\n", mode);
-            exit(1);
+            endProgram(1);
         }
         modeNum = convert(octal);
     }
+    //In mode
     else 
         modeNum = findMode(mode, filePath, oldMode);
     return modeNum;
@@ -37,6 +42,7 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
     char target = mode[0];
     char operation = mode[1];
 
+    //Depending on the target and the permission (rwx), it will use the write macro
     switch (target) {
         case 'u': {
             for (unsigned int i = 2; i < length; i++) {
@@ -116,10 +122,11 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
         }
         default: {
             fprintf(stderr, "Invalid target identifier:%c\n", target);
-            exit(1);
+            endProgram(1);
         }
     }
 
+    //Depending on the operation, returns the updated mode correctly
     switch (operation) {
         case '+': {
             return oldMode | newMode;
@@ -132,7 +139,7 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
         }
         default: {
             fprintf(stderr, "Invalid type of mode operation:%c\n", operation);
-            exit(1);
+            endProgram(1);
         }
     } 
 }
@@ -152,8 +159,10 @@ mode_t convert(int octal) {
 mode_t getFilePermissions(const char *path) {
     struct stat mode;
     if (stat(path, &mode) == -1) {
-        exit(1);
+        fprintf(stderr, "Error getting file permissions:%s\n", strerror(errno));
+        endProgram(1);
     }
+
     mode_t m = mode.st_mode;
     m &= 0x00fff;
     return m;
