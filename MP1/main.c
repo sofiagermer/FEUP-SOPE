@@ -136,8 +136,6 @@ int main(int argc, char* argv[], char* envp[]) {
         wait(NULL);
     }
 
-    while(1) sleep(1);
-
     endProgram(0);
     
 
