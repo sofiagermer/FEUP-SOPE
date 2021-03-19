@@ -117,6 +117,7 @@ void initializeProcess(char* argv[], int argc) {
     pInfo->noChildren = 0;
     pInfo->options.recursive = false;
     pInfo->options.vflag = NONE;
+    pInfo->regist = false;
      
     //Sets the signal handling
     setUpSigHandlers();

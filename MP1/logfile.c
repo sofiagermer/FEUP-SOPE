@@ -10,11 +10,13 @@ void registSignalSent(char* signalSent, int pid) {
 
 void regitExecution( pid_t pid, char* event, char* info){
 
+    if (!pInfo->regist) return;
+
     //Opening log file
     char* filename = getenv("LOG_FILENAME");
     if(filename == NULL) {
         fprintf(stderr, "Environment variable error: LOG_FILENAME not set\n");
-        return;
+        endProgram(1);
     }
 
     FILE *file = fopen(filename, "a");
@@ -55,6 +57,8 @@ void initRegister () {
         fprintf(stderr, "Environment variable error: LOG_FILENAME not set\n");
         return;
     }
+
+    pInfo->regist = true;
 
     //Opens a text file for both reading and writing. 
     //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.

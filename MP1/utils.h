@@ -32,6 +32,7 @@ typedef struct {
     char* modeString;
     bool isInitial;
     bool isParent;
+    bool regist;
     int* childrenPIDs;
     int noChildren;
 } ProcessInfo;
