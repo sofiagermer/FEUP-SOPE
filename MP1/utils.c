@@ -128,14 +128,13 @@ void hasAChild(char* newPath) {
             
             if (execvp(args[0], args) == -1) {
                 fprintf(stderr, "Error with execvpe: %s", strerror(errno));
-                exit(1);
+                endProgram(1);
             }
             break;
         }
         case -1:{
             fprintf(stderr, "Error with fork:%s\n", strerror(errno));
-            registProcessExit(1);
-            exit(1);
+            endProgram(1);
         }
         default: {
             //Acrescentamos estas duas linhas

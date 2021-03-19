@@ -61,8 +61,7 @@ void executer(char* filePath) {
 
         if ((dir = opendir (filePath)) == NULL) {
             fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
-            registProcessExit(1);
-            exit(1);
+            endProgram(1);
         }
 
         while ((entry = readdir (dir)) != NULL) { 
@@ -77,11 +76,9 @@ void executer(char* filePath) {
                 if (entry->d_type != DT_DIR) {
                     executer(newPath);
                     free(newPath);
-                    continue;
+                } else {
+                    hasAChild(newPath);
                 }
-
-                //If it is here, it must have child processes
-                hasAChild(newPath);
 
                 free(newPath);
             }               
