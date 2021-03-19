@@ -19,4 +19,4 @@ signal_handling.o: signal_handling.c signal_handling.h utils.h
 	$(CC) $(CFLAGS) -c signal_handling.c 
 
 clean:
-	rm *.o *.exe *.log
+	rm *.o xmod
