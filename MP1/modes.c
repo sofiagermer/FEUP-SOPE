@@ -130,16 +130,20 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
     switch (operation) {
         case '+': {
             newMode = oldMode | newMode;
+            break;
         }
         case '-': {
             newMode = oldMode & ~newMode;
+            break;
         }
         case '=': {
             newMode = newMode;
+            break;
         }
         default: {
             fprintf(stderr, "Invalid type of mode operation:%c\n", operation);
             endProgram(1);
+            break;
         }
     } 
     return newMode;

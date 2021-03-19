@@ -57,7 +57,7 @@ void initRegister () {
         fprintf(stderr, "Environment variable error: LOG_FILENAME not set\n");
         return;
     }
-
+    
     //Opens a text file for both reading and writing. 
     //It first truncates the file to zero length if it exists, otherwise creates a file if it does not exist.
     FILE *file = fopen(filename, "w+");
@@ -69,7 +69,6 @@ void initRegister () {
         fprintf(stderr, "Error closing register file:%s\n", strerror(errno));
         endProgram(1);
     }
-    
 }
 
 void registProcessExit(int exitStatus) {
@@ -83,7 +82,7 @@ void registProcessExit(int exitStatus) {
 void registProcessCreation(char* args[]) {
 
     //Build the string with the process's arguments and registers it 
-    char info[100] = "";
+    char info[100] ;
     for (unsigned int i = 0; i < pInfo->args.nArgs; i++) {
         snprintf(info,sizeof(info),"%s ,",args[i]);
     }
