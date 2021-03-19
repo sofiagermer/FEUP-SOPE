@@ -51,7 +51,7 @@ void setUpSigInt () {
         exit(1);
     }
     new.sa_mask = smask;
-    new.sa_flags = 0;
+    new.sa_flags = SA_RESTART;
     if (pInfo->isInitial)
         new.sa_handler = sigHandlerSigIntInitial;
     else

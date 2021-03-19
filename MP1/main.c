@@ -83,7 +83,10 @@ void hasAChild(char* newPath) {
         }
         default: {
             //Acrescentamos estas duas linhas
-            if(pInfo->childrenPIDs == NULL) return;
+            if(pInfo->childrenPIDs == NULL) {
+                fprintf(stderr, "Error: process has no children\n");
+                endProgram(1);
+            }
             pInfo->childrenPIDs[pInfo->noChildren] = id;
             pInfo->noChildren++;
             break;
@@ -195,7 +198,7 @@ int main(int argc, char* argv[], char* envp[]) {
     for(int i=0;i<pInfo->noChildren;i++){
         wait(NULL);
     }
-    
+    while(1) sleep(1);
     endProgram(0);
     
 
