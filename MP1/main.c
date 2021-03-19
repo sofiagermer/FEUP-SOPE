@@ -75,7 +75,6 @@ void executer(char* filePath) {
                 //VERIFY IF IT IS A DIRECTORY
                 if (entry->d_type != DT_DIR) {
                     executer(newPath);
-                    free(newPath);
                 } else {
                     hasAChild(newPath);
                 }
@@ -114,7 +113,7 @@ void initializeProcess(char* argv[], int argc) {
     pInfo->noChildren = 0;
     pInfo->options.recursive = false;
     pInfo->options.vflag = NONE;
-    pInfo->regist = false;
+    pInfo->regist = true;
      
     //Sets the signal handling
     setUpSigHandlers();
