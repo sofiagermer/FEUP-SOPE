@@ -6,7 +6,6 @@ void sigHandlerSigInt(int signo) {
     printf("PID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d\n",
      getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
     kill(getpid(), SIGTSTP);
-    printf("Im outtie%d\n", getpid());
 }
 
 void sigHandlerSigIntInitial(int signo) {
@@ -15,7 +14,7 @@ void sigHandlerSigIntInitial(int signo) {
     //Records the receivement
     regitExecution(getpid(), "SIGNAL_RECV", "SIGINT");
     printf("PID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
-    sleep(1);
+    usleep(10000);
     
     //Asks if the program should continue and acts accordingly
     while(1) {
