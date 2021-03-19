@@ -112,4 +112,7 @@ void registFileModf(mode_t oldMode, mode_t newMode, char* filePath) {
     char *info = (char*) malloc(size); 
     snprintf(info,size, "%s : %s : %s", filePath, fourDigitOldMode, fourDigitNewMode);
     regitExecution(getpid(), "FILE_MODF", info); 
+    free(fourDigitNewMode);
+    free(fourDigitOldMode);
+    free(info);
 }

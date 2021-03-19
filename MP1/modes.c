@@ -41,10 +41,12 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
     int length = strlen(mode);
     char target = mode[0];
     char operation = mode[1];
+    mode_t mask=0;
 
     //Depending on the target and the permission (rwx), it will use the write macro
     switch (target) {
         case 'u': {
+            mask|=S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH;
             for (unsigned int i = 2; i < length; i++) {
                 switch (mode[i]) {
                     case 'r': {
@@ -64,6 +66,7 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
             break;
         }
         case 'g': {
+            mask|=S_IRUSR|S_IWUSR|S_IXUSR|S_IROTH|S_IWOTH|S_IXOTH;
             for (unsigned int i = 2; i < length; i++) {
                 switch (mode[i]) {
                     case 'r': {
@@ -83,6 +86,7 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
             break;
         }
         case 'o': {
+            mask |= S_IRGRP|S_IWGRP|S_IXGRP|S_IRUSR|S_IWUSR|S_IXUSR;
             for (unsigned int i = 2; i < length; i++) {
                 switch (mode[i]) {
                     case 'r': {
@@ -102,6 +106,7 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
             break;
         }
         case 'a': {
+            mask = 0;
             for (unsigned int i = 2; i < length; i++) {
                 switch (mode[i]) {
                     case 'r': {
@@ -137,7 +142,8 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
             break;
         }
         case '=': {
-            newMode = newMode;
+            mask &= oldMode; 
+            newMode |= mask;
             break;
         }
         default: {

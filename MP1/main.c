@@ -134,7 +134,7 @@ int main(int argc, char* argv[], char* envp[]) {
     //Waits for child processes to finish
     for(int i = 0; i < pInfo->noChildren; i++){
         wait(NULL);
-    }
+    } 
 
     endProgram(0);
     
