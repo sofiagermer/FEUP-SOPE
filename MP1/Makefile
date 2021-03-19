@@ -3,26 +3,20 @@ CC = gcc
 LIBS = -lm
 CFLAGS = -Wall
 
-main.exe: main.o modes.o options.o utils.o signal_handling.o logfile.o
-	$(CC) $(CFLAGS) main.o modes.o utils.o logfile.o signal_handling.o options.o -o main.exe $(LIBS)
+xmod: main.o modes.o utils.o logfile.o signal_handling.o
+	$(CC) -o xmod main.o modes.o utils.o logfile.o signal_handling.o $(CFLAGS) $(LIBS)
 
-main.o: main.c
-	$(CC) $(CFLAGS) -c main.c
+modes.o: modes.c modes.h
+	$(CC) -c modes.c $(CFLAGS)
 
-modes.o: modes.h modes.c
-	$(CC) $(CFLAGS) -c modes.c
+utils.o: utils.c utils.h
+	$(CC) $(CFLAGS) -c utils.c $(CFLAGS)
 
-options.o: options.h options.c 
-	$(CC) $(CFLAGS) -c options.c
+logfile.o: logfile.c logfile.h utils.h
+	$(CC) -c logfile.c $(CFLAGS) 
 
-utils.o: utils.h utils.c
-	$(CC) $(CFLAGS) -c utils.c
-
-signal_handling.o: signal_handling.c signal_handling.h 
-	$(CC) $(CFLAGS) -c signal_handling.c
-
-logfile.o: logfile.h logfile.c
-	$(CC) $(CFLAGS) -c logfile.c
+signal_handling.o: signal_handling.c signal_handling.h utils.h
+	$(CC) -c signal_handling.c $(CFLAGS)
 
 clean:
 	rm *.o *.exe *.log

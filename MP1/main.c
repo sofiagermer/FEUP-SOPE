@@ -2,7 +2,7 @@
 #include <signal.h>
 #include <time.h>
 #include "modes.h"
-#include "options.h"
+#include "utils.h"
 #include "signal_handling.h"
 
 
@@ -13,7 +13,6 @@ ProcessInfo* pInfo;
 //BIGGER FUNCS
 void parse(); //Parses arguments
 void executer(char* fileName); //Recursive funtion
-void endProgram(); //To kill everything
 void initializeProcess(char* argv[], int argc); //To initialize the struct and define signal handlers
 void makeNewArgs(char* newArgs[], char* fileName); //To fabricate the arguments for the new process
 void initRegister();
@@ -80,7 +79,7 @@ void hasAChild(char* newPath) {
         }
         case -1:{
             fprintf(stderr, "Error with fork:%s\n", strerror(errno));
-            regitExecution(getpid(), "PROC_EXIT",  "1");
+            registProcessExit(1);
             exit(1);
         }
         default: {
@@ -102,7 +101,7 @@ void executer(char* filePath) {
     newMode = getModeNum(pInfo->modeString, filePath, oldMode);
 
     if (access(filePath, F_OK) == -1) {
-        regitExecution( getpid(), "PROC_EXIT",  "1");
+        registProcessExit(1);
         fprintf(stderr, "File name wrong: %s", strerror(errno));
         exit(1);
     }
@@ -111,12 +110,12 @@ void executer(char* filePath) {
 
 
     if (chmod(filePath, newMode) != 0) {
-        regitExecution(getpid(), "PROC_EXIT",  "1");
+        registProcessExit(1);
         fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
         exit(1);
     } else {
         registFileModf(oldMode, newMode, filePath);
-        diagnosticPrint(filePath, oldMode, newMode, pInfo->options); 
+        diagnosticPrint(filePath, oldMode, newMode); 
         pInfo->noFilesChanged++;
     }
     
@@ -124,7 +123,7 @@ void executer(char* filePath) {
 
         if ((dir = opendir (filePath)) == NULL) {
             fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
-            regitExecution(getpid(), "PROC_EXIT",  "1");
+            registProcessExit(1);
             exit(1);
         }
 
@@ -136,10 +135,10 @@ void executer(char* filePath) {
                 char* newPath = (char*) malloc(sizeNewPath);
                 snprintf(newPath,sizeNewPath,"%s/%s",filePath,entry->d_name);
 
-
                 //VERIFY IF IT IS A DIRECTORY
                 if (entry->d_type != DT_DIR) {
                     executer(newPath);
+                    free(newPath);
                     continue;
                 }
                 hasAChild(newPath);
@@ -150,7 +149,6 @@ void executer(char* filePath) {
         }
 
     }
-   regitExecution(getpid(), "PROC_EXIT",  "0");
 }
 
 void initializeProcess(char* argv[], int argc) {
@@ -177,21 +175,6 @@ void initializeProcess(char* argv[], int argc) {
     setUpSigHandlers();
 }
 
-void endProgram(int exitStatus) {
-
-    registProcessExit(exitStatus);
-
-    if(pInfo->isInitial){
-        unsetenv("firstRun");
-    }
-    if (pInfo->isParent) {
-        free(pInfo->childrenPIDs);
-    }
-    
-    free(pInfo);
-    
-    exit(exitStatus);
-}
 
 int main(int argc, char* argv[], char* envp[]) {
     //Initialize Process
@@ -203,9 +186,12 @@ int main(int argc, char* argv[], char* envp[]) {
     //Recursive function
     executer(pInfo->filePath);
     
-    wait(NULL); //Waits for child processes to finish
-
-    //while(1) sleep(1);
+    
+    //Waits for child processes to finish
+    for(int i=0;i<pInfo->noChildren;i++){
+        wait(NULL);
+    }
+    
     endProgram(0);
     
 

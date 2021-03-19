@@ -1,5 +1,6 @@
 #include "logfile.h"
 
+extern ProcessInfo* pInfo;
 
 void registSignalSent(char* signalSent, int pid) {
     char info[20];
@@ -61,7 +62,6 @@ void registProcessCreation(char* args[]) {
         snprintf(info,sizeof(info),"%s ,",args[i]);
     }
     regitExecution(getpid(), "PROC_CREAT" , info);
-
 }
 
 void registFileModf(mode_t oldMode, mode_t newMode, char* filePath) {

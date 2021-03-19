@@ -4,10 +4,10 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "logfile.h"
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "logfile.h"
 #include "utils.h"
 
 extern int errno;

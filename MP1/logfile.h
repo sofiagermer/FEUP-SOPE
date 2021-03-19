@@ -2,6 +2,12 @@
 
 
 #include <stdio.h>
+#include <sys/types.h>
+#include <time.h>
+#include <string.h>
+#include <stdlib.h>
+#include <errno.h>
+#include "utils.h"
 
 void initRegister ();
 void regitExecution( pid_t pid, char* event, char* info);
