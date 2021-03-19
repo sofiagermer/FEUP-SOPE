@@ -41,12 +41,12 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
     int length = strlen(mode);
     char target = mode[0];
     char operation = mode[1];
-    mode_t mask=0;
+    mode_t mask = 0;
 
     //Depending on the target and the permission (rwx), it will use the write macro
     switch (target) {
         case 'u': {
-            mask|=S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH;
+            mask |= S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH; //For equals
             for (unsigned int i = 2; i < length; i++) {
                 switch (mode[i]) {
                     case 'r': {
@@ -66,7 +66,7 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
             break;
         }
         case 'g': {
-            mask|=S_IRUSR|S_IWUSR|S_IXUSR|S_IROTH|S_IWOTH|S_IXOTH;
+            mask |= S_IRUSR | S_IWUSR | S_IXUSR | S_IROTH | S_IWOTH | S_IXOTH;
             for (unsigned int i = 2; i < length; i++) {
                 switch (mode[i]) {
                     case 'r': {
@@ -86,7 +86,7 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
             break;
         }
         case 'o': {
-            mask |= S_IRGRP|S_IWGRP|S_IXGRP|S_IRUSR|S_IWUSR|S_IXUSR;
+            mask |= S_IRGRP | S_IWGRP | S_IXGRP | S_IRUSR | S_IWUSR | S_IXUSR;
             for (unsigned int i = 2; i < length; i++) {
                 switch (mode[i]) {
                     case 'r': {
@@ -169,9 +169,11 @@ mode_t convert(int octal) {
 
 mode_t getFilePermissions(const char *path) {
     struct stat mode;
-    if (stat(path, &mode) == -1) {
-        fprintf(stderr, "Error getting file permissions:%s\n", strerror(errno));
-        endProgram(1);
+    int result = stat(path, &mode);
+    if (errno != ENOENT) pInfo->noFilesFound++; //Found a file
+    if (result == -1) {
+        fprintf(stderr, "Error accessing file:%s\n", strerror(errno));
+        return 999999;
     }
 
     mode_t m = mode.st_mode;

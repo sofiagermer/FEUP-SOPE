@@ -13,28 +13,26 @@
 typedef enum {C, V, NONE} Verbose;
 
 typedef struct {
-    Verbose vflag;
-    bool recursive;
+    Verbose vflag; //v ou c
+    bool recursive; //R
 } Options;
 
 typedef struct {
-    char** arguments;
-    int nArgs;
-    int fileNameIndex;
+    char** arguments; //argv
+    int nArgs; //argc
+    int fileNameIndex; //Index of the fileName in argv
 } Arguments;
 
 typedef struct {
     Options options;
-    int noFilesFound;
-    int noFilesChanged;
-    Arguments args;
-    char* filePath;
-    char* modeString;
-    bool isInitial;
-    bool isParent;
-    bool regist;
-    int* childrenPIDs;
-    int noChildren;
+    int noFilesFound; //Number of files found so far
+    int noFilesChanged; //Number of files changed so far
+    int noChildren; //Number of children
+    Arguments args; 
+    char* filePath; //File that initiated the process
+    char* modeString; //Mode string
+    bool isInitial; //If it is the first process or not
+    bool regist; //If it should register in the log file or not
 } ProcessInfo;
 
 extern ProcessInfo* pInfo;

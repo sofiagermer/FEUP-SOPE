@@ -17,9 +17,6 @@ void endProgram(int exitStatus) {
     if(pInfo->isInitial){
         unsetenv("firstRun");
     }
-    if (pInfo->isParent) {
-        free(pInfo->childrenPIDs);
-    }
     
     free(pInfo);
     exit(exitStatus);
@@ -109,11 +106,6 @@ void makeNewArgs(char* newArgs[], char* fileName) {
 }
 
 void hasAChild(char* newPath) {
-    //GETTING READY TO SAVE CHILDREN'S PIDS
-    if (!pInfo->isParent) {
-        pInfo->isParent = true;
-        pInfo->childrenPIDs = (int*) malloc(100 * sizeof(int));
-    }
     
     char* args[pInfo->args.nArgs + 1];
     makeNewArgs(args, newPath);
@@ -137,12 +129,6 @@ void hasAChild(char* newPath) {
             endProgram(1);
         }
         default: {
-            //Acrescentamos estas duas linhas
-            if(pInfo->childrenPIDs == NULL) {
-                fprintf(stderr, "Error: process has no children\n");
-                endProgram(1);
-            }
-            pInfo->childrenPIDs[pInfo->noChildren] = id;
             pInfo->noChildren++;
             break;
         }

@@ -37,16 +37,14 @@ void executer(char* filePath) {
     mode_t oldMode = getFilePermissions(filePath);
     mode_t newMode = getModeNum(pInfo->modeString, filePath, oldMode);
 
-    if (access(filePath, F_OK) == -1) {
-        fprintf(stderr, "File name wrong: %s", strerror(errno));
-        endProgram(1);
+    //If it can't get the old permissions
+    if (oldMode == 999999) {
+        printf("mode of '%s' could not be changed\n", filePath);
+        return;
     }
-    else 
-        pInfo->noFilesFound++;
-
 
     if (chmod(filePath, newMode) != 0) {
-        fprintf(stderr, "Error withaaa chmod:%s\n", strerror(errno));
+        fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
         endProgram(1);
     } else {
         registFileModf(oldMode, newMode, filePath);
@@ -104,16 +102,14 @@ void initializeProcess(char* argv[], int argc) {
     else 
         pInfo->isInitial = false;
 
-    pInfo->isParent = false;
     pInfo->noFilesChanged = 0;
     pInfo->noFilesFound = 0;
     pInfo->args.arguments = argv;
     pInfo->args.nArgs = argc;  
-    pInfo->childrenPIDs = NULL;
-    pInfo->noChildren = 0;
     pInfo->options.recursive = false;
     pInfo->options.vflag = NONE;
     pInfo->regist = true;
+    pInfo->noChildren = 0;
      
     //Sets the signal handling
     setUpSigHandlers();
@@ -132,12 +128,10 @@ int main(int argc, char* argv[], char* envp[]) {
     
     
     //Waits for child processes to finish
-    for(int i = 0; i < pInfo->noChildren; i++){
+    for(int i = 0; i < pInfo->noChildren; i++)
         wait(NULL);
-    } 
 
     endProgram(0);
-    
 
     return 0;
 }
