@@ -16,11 +16,12 @@ void sigHandlerSigIntInitial(int signo) {
     regitExecution(getpid(), "SIGNAL_RECV", "SIGINT");
     printf("PID:%d FILEPATH:%s NUMBER OF FILES FOUND:%d NUMBER OF FILES MODIFIED:%d \n", getpid(), pInfo->filePath, pInfo->noFilesFound, pInfo->noFilesChanged);
     sleep(1);
-    printf("DO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)");
-    scanf("%s", answer);
-
+    
     //Asks if the program should continue and acts accordingly
     while(1) {
+        printf("DO YOU WANT TO WANT THE EXECUTION TO PROCEED?(y/n)");
+        scanf("%s", answer);
+        
         if(strcmp(answer,"y") == 0) {
             kill(0, SIGCONT);
             registSignalSent("SICONT", 0);
