@@ -23,11 +23,11 @@ void sigHandlerSigIntInitial(int signo) {
         
         if(strcmp(answer,"y") == 0) {
             kill(0, SIGCONT);
-            registSignalSent("SICONT", 0);
+            registSignalSent("SIGCONT", 0);
             break;
         } else if (strcmp(answer,"n") == 0) {
             kill(0, SIGTERM);
-            registSignalSent("SITERM", 0);
+            registSignalSent("SIGTERM", 0);
             endProgram(1);
         } else {
             printf("NOT A VALID ANSWER\n");
