@@ -1,0 +1,574 @@
+[40013][      debug] Loading models took 26.26ms
+[40014][      debug] Sqlite write daemon: starting up
+[40014][      debug] Sqlite write daemon: set up complete, waiting for connections
+[40013][environment] CWD = /home/sofia/Desktop/SOPE/MP1/MP1
+[40013][environment] No .inferconfig file found
+[40013][environment] Project root = /home/sofia/Desktop/SOPE/MP1/MP1
+[40013][environment] INFER_ARGS =   @/tmp/args.tmp.5b9de5
+[40013][environment] command line arguments:   infer run -- make
+[40013][environment] Available memory at startup: 10058 MB
+[40013][environment] Active checkers: self-in-block (C/C++/ObjC), starvation (C/C++/ObjC, Java), uninit (C/C++/ObjC), siof (C/C++/ObjC), racerd (C/C++/ObjC, Java), liveness (C/C++/ObjC), inefficient-keyset-iterator (Java), fragment-retains-view (Java), biabduction (C/C++/ObjC, Java)
+[40013][environment] Scheduler: file
+[40013][environment] Cores used: 6
+[40013][environment] Infer version v1.0.0
+[40013][environment] Copyright 2009 - present Facebook. All Rights Reserved.
+[40013][environment] 
+[40013][   progress] Capturing in make/cc mode...
+[40013][environment] Running command make with env:
+[40013][environment] (Extend((PATH /opt/infer-linux64-v1.0.0/lib/infer/infer/bin/../lib/wrappers:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin)(INFER_OLD_PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin)))
+[40013][environment] 
+
+[40016][environment] CWD = /home/sofia/Desktop/SOPE/MP1/MP1
+[40016][environment] No .inferconfig file found
+[40016][environment] Project root = /home/sofia/Desktop/SOPE/MP1/MP1
+[40016][environment] INFER_ARGS =   @/tmp/args.tmp.58dbab
+[40016][environment] command line arguments:   gcc -Wall -c -o main.o main.c
+[40016][environment] Available memory at startup: 10021 MB
+[40016][environment] Active checkers: self-in-block (C/C++/ObjC), starvation (C/C++/ObjC, Java), uninit (C/C++/ObjC), siof (C/C++/ObjC), racerd (C/C++/ObjC, Java), liveness (C/C++/ObjC), inefficient-keyset-iterator (Java), fragment-retains-view (Java), biabduction (C/C++/ObjC, Java)
+[40016][      debug] 
+[40016][      debug] *** Beginning capture of file /home/sofia/Desktop/SOPE/MP1/MP1/main.c ***
+[40016][      debug] Loading the following linters files: /opt/infer-linux64-v1.0.0/lib/infer/infer/bin/../lib/linter_rules/linters.al
+[40016][      debug] Elapsed: 82.652ms.
+[40016][      debug] GC stats for capture:
+[40016][      debug]   minor_words: 5.99742e+06
+[40016][      debug]   promoted_words: 623063
+[40016][      debug]   major_words: 659217
+[40016][      debug]   minor_collections: 7
+[40016][      debug]   major_collections: 1
+[40016][      debug]   compactions: 0
+[40016][      debug]   top_heap_words: 875008
+[40016][      debug]   
+[40016][      debug] GC stats for main_process_full:
+[40016][      debug]   minor_words: 7.30227e+06
+[40016][      debug]   promoted_words: 790797
+[40016][      debug]   major_words: 843049
+[40016][      debug]   minor_collections: 21
+[40016][      debug]   major_collections: 5
+[40016][      debug]   compactions: 1
+[40016][      debug]   top_heap_words: 875008
+[40016][      debug]   
+[40016][environment] Scheduler: file
+[40016][environment] Cores used: 6
+[40016][environment] 
+[40021][environment] CWD = /home/sofia/Desktop/SOPE/MP1/MP1
+[40021][environment] No .inferconfig file found
+[40021][environment] Project root = /home/sofia/Desktop/SOPE/MP1/MP1
+[40021][environment] INFER_ARGS =   @/tmp/args.tmp.b83cc5
+[40021][environment] command line arguments:   gcc -Wall -c modes.c
+[40021][environment] Available memory at startup: 10010 MB
+[40021][environment] Active checkers: self-in-block (C/C++/ObjC), starvation (C/C++/ObjC, Java), uninit (C/C++/ObjC), siof (C/C++/ObjC), racerd (C/C++/ObjC, Java), liveness (C/C++/ObjC), inefficient-keyset-iterator (Java), fragment-retains-view (Java), biabduction (C/C++/ObjC, Java)
+[40021][      debug] 
+[40021][      debug] *** Beginning capture of file /home/sofia/Desktop/SOPE/MP1/MP1/modes.c ***
+[40021][      debug] Loading the following linters files: /opt/infer-linux64-v1.0.0/lib/infer/infer/bin/../lib/linter_rules/linters.al
+[40021][      debug] Elapsed: 67.764ms.
+[40021][      debug] GC stats for capture:
+[40021][      debug]   minor_words: 5.57422e+06
+[40021][      debug]   promoted_words: 586992
+[40021][      debug]   major_words: 612847
+[40021][      debug]   minor_collections: 7
+[40021][      debug]   major_collections: 1
+[40021][      debug]   compactions: 0
+[40021][      debug]   top_heap_words: 875008
+[40021][      debug]   
+[40021][      debug] GC stats for main_process_full:
+[40021][      debug]   minor_words: 6.87863e+06
+[40021][      debug]   promoted_words: 754711
+[40021][      debug]   major_words: 796664
+[40021][      debug]   minor_collections: 21
+[40021][      debug]   major_collections: 5
+[40021][      debug]   compactions: 1
+[40021][      debug]   top_heap_words: 875008
+[40021][      debug]   
+[40021][environment] Scheduler: file
+[40021][environment] Cores used: 6
+[40021][environment] 
+[40026][environment] CWD = /home/sofia/Desktop/SOPE/MP1/MP1
+[40026][environment] No .inferconfig file found
+[40026][environment] Project root = /home/sofia/Desktop/SOPE/MP1/MP1
+[40026][environment] INFER_ARGS =   @/tmp/args.tmp.c76a23
+[40026][environment] command line arguments:   gcc -Wall -c utils.c
+[40026][environment] Available memory at startup: 10007 MB
+[40026][environment] Active checkers: self-in-block (C/C++/ObjC), starvation (C/C++/ObjC, Java), uninit (C/C++/ObjC), siof (C/C++/ObjC), racerd (C/C++/ObjC, Java), liveness (C/C++/ObjC), inefficient-keyset-iterator (Java), fragment-retains-view (Java), biabduction (C/C++/ObjC, Java)
+[40026][      debug] 
+[40026][      debug] *** Beginning capture of file /home/sofia/Desktop/SOPE/MP1/MP1/utils.c ***
+[40026][      debug] Loading the following linters files: /opt/infer-linux64-v1.0.0/lib/infer/infer/bin/../lib/linter_rules/linters.al
+[40026][      debug] Elapsed: 54.001ms.
+[40026][      debug] GC stats for capture:
+[40026][      debug]   minor_words: 3.72206e+06
+[40026][      debug]   promoted_words: 470905
+[40026][      debug]   major_words: 495749
+[40026][      debug]   minor_collections: 5
+[40026][      debug]   major_collections: 0
+[40026][      debug]   compactions: 0
+[40026][      debug]   top_heap_words: 661504
+[40026][      debug]   
+[40026][      debug] GC stats for main_process_full:
+[40026][      debug]   minor_words: 5.02647e+06
+[40026][      debug]   promoted_words: 638624
+[40026][      debug]   major_words: 679566
+[40026][      debug]   minor_collections: 19
+[40026][      debug]   major_collections: 4
+[40026][      debug]   compactions: 1
+[40026][      debug]   top_heap_words: 661504
+[40026][      debug]   
+[40026][environment] Scheduler: file
+[40026][environment] Cores used: 6
+[40026][environment] 
+[40031][environment] CWD = /home/sofia/Desktop/SOPE/MP1/MP1
+[40031][environment] No .inferconfig file found
+[40031][environment] Project root = /home/sofia/Desktop/SOPE/MP1/MP1
+[40031][environment] INFER_ARGS =   @/tmp/args.tmp.36bee3
+[40031][environment] command line arguments:   gcc -Wall -c logfile.c
+[40031][environment] Available memory at startup: 10005 MB
+[40031][environment] Active checkers: self-in-block (C/C++/ObjC), starvation (C/C++/ObjC, Java), uninit (C/C++/ObjC), siof (C/C++/ObjC), racerd (C/C++/ObjC, Java), liveness (C/C++/ObjC), inefficient-keyset-iterator (Java), fragment-retains-view (Java), biabduction (C/C++/ObjC, Java)
+[40031][      debug] 
+[40031][      debug] *** Beginning capture of file /home/sofia/Desktop/SOPE/MP1/MP1/logfile.c ***
+[40031][      debug] Loading the following linters files: /opt/infer-linux64-v1.0.0/lib/infer/infer/bin/../lib/linter_rules/linters.al
+[40031][      debug] Elapsed: 50.312ms.
+[40031][      debug] GC stats for capture:
+[40031][      debug]   minor_words: 3.35291e+06
+[40031][      debug]   promoted_words: 425783
+[40031][      debug]   major_words: 449984
+[40031][      debug]   minor_collections: 6
+[40031][      debug]   major_collections: 1
+[40031][      debug]   compactions: 0
+[40031][      debug]   top_heap_words: 661504
+[40031][      debug]   
+[40031][      debug] GC stats for main_process_full:
+[40031][      debug]   minor_words: 4.65732e+06
+[40031][      debug]   promoted_words: 593504
+[40031][      debug]   major_words: 633803
+[40031][      debug]   minor_collections: 19
+[40031][      debug]   major_collections: 4
+[40031][      debug]   compactions: 1
+[40031][      debug]   top_heap_words: 661504
+[40031][      debug]   
+[40031][environment] Scheduler: file
+[40031][environment] Cores used: 6
+[40031][environment] 
+[40036][environment] CWD = /home/sofia/Desktop/SOPE/MP1/MP1
+[40036][environment] No .inferconfig file found
+[40036][environment] Project root = /home/sofia/Desktop/SOPE/MP1/MP1
+[40036][environment] INFER_ARGS =   @/tmp/args.tmp.5c7f3f
+[40036][environment] command line arguments:   gcc -Wall -c signal_handling.c
+[40036][environment] Available memory at startup: 10007 MB
+[40036][environment] Active checkers: self-in-block (C/C++/ObjC), starvation (C/C++/ObjC, Java), uninit (C/C++/ObjC), siof (C/C++/ObjC), racerd (C/C++/ObjC, Java), liveness (C/C++/ObjC), inefficient-keyset-iterator (Java), fragment-retains-view (Java), biabduction (C/C++/ObjC, Java)
+[40036][      debug] 
+[40036][      debug] *** Beginning capture of file /home/sofia/Desktop/SOPE/MP1/MP1/signal_handling.c ***
+[40036][      debug] Loading the following linters files: /opt/infer-linux64-v1.0.0/lib/infer/infer/bin/../lib/linter_rules/linters.al
+[40036][      debug] Elapsed: 63.544ms.
+[40036][      debug] GC stats for capture:
+[40036][      debug]   minor_words: 4.57438e+06
+[40036][      debug]   promoted_words: 539972
+[40036][      debug]   major_words: 571106
+[40036][      debug]   minor_collections: 6
+[40036][      debug]   major_collections: 1
+[40036][      debug]   compactions: 0
+[40036][      debug]   top_heap_words: 760832
+[40036][      debug]   
+[40036][      debug] GC stats for main_process_full:
+[40036][      debug]   minor_words: 5.8788e+06
+[40036][      debug]   promoted_words: 707695
+[40036][      debug]   major_words: 754927
+[40036][      debug]   minor_collections: 20
+[40036][      debug]   major_collections: 5
+[40036][      debug]   compactions: 1
+[40036][      debug]   top_heap_words: 760832
+[40036][      debug]   
+[40036][environment] Scheduler: file
+[40036][environment] Cores used: 6
+[40036][environment] 
+[40041][environment] CWD = /home/sofia/Desktop/SOPE/MP1/MP1
+[40041][environment] No .inferconfig file found
+[40041][environment] Project root = /home/sofia/Desktop/SOPE/MP1/MP1
+[40041][environment] INFER_ARGS =   @/tmp/args.tmp.44c675
+[40041][environment] command line arguments:   gcc -Wall -o xmod main.o modes.o utils.o logfile.o
+[40041][environment]                           signal_handling.o -lm
+[40041][environment] Available memory at startup: 10004 MB
+[40041][environment] Active checkers: self-in-block (C/C++/ObjC), starvation (C/C++/ObjC, Java), uninit (C/C++/ObjC), siof (C/C++/ObjC), racerd (C/C++/ObjC, Java), liveness (C/C++/ObjC), inefficient-keyset-iterator (Java), fragment-retains-view (Java), biabduction (C/C++/ObjC, Java)
+[40041][      debug] GC stats for capture:
+[40041][      debug]   minor_words: 6937
+[40041][      debug]   promoted_words: 0
+[40041][      debug]   major_words: 0
+[40041][      debug]   minor_collections: 0
+[40041][      debug]   major_collections: 0
+[40041][      debug]   compactions: 0
+[40041][      debug]   top_heap_words: 188416
+[40041][      debug]   
+[40041][      debug] GC stats for main_process_full:
+[40041][      debug]   minor_words: 1.3124e+06
+[40041][      debug]   promoted_words: 167771
+[40041][      debug]   major_words: 183869
+[40041][      debug]   minor_collections: 14
+[40041][      debug]   major_collections: 4
+[40041][      debug]   compactions: 1
+[40041][      debug]   top_heap_words: 188416
+[40041][      debug]   
+[40041][environment] Scheduler: file
+[40041][environment] Cores used: 6
+[40041][environment] [40013][      debug] GC stats for capture:
+[40013][      debug]   minor_words: 1514
+[40013][      debug]   promoted_words: 0
+[40013][      debug]   major_words: 0
+[40013][      debug]   minor_collections: 0
+[40013][      debug]   major_collections: 0
+[40013][      debug]   compactions: 0
+[40013][      debug]   top_heap_words: 661504
+[40013][      debug]   
+[40013][environment] Parallel jobs: 6
+[40013][   progress] Found 5 source files to analyze in /home/sofia/Desktop/SOPE/MP1/MP1/infer-out
+[40048][   progress] signal_handling.c starting
+[40049][   progress] utils.c starting
+[40050][   progress] modes.c starting
+[40047][   progress] logfile.c starting
+[40046][   progress] main.c starting
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][      debug] 
+[40050][      debug] typ_get_recursive_flds: unexpected sizeof(t=) unknown struct type: struct ProcessInfo
+[40050][   progress] modes.c DONE
+[40049][   progress] utils.c DONE
+[40048][   progress] signal_handling.c DONE
+[40047][   progress] logfile.c DONE
+[40046][   progress] main.c DONE
+[40013][      debug] Backend stats:
+[40013][      debug]   summary_file_try_load= 1868
+[40013][      debug]   summary_read_from_disk= 23
+[40013][      debug]   summary_cache_hits= 9178 (83%)
+[40013][      debug]   summary_cache_misses= 1868
+[40013][      debug]   ondemand_procs_analyzed= 57
+[40013][      debug]   ondemand_local_cache_hits= 3824 (95%)
+[40013][      debug]   ondemand_local_cache_misses= 162
+[40013][      debug]   proc_locker_lock_time_user= 0.00000000
+[40013][      debug]   proc_locker_lock_time_sys= 0.00000000
+[40013][      debug]   proc_locker_lock_time_wall= 0.00000000
+[40013][      debug]   proc_locker_unlock_time_user= 0.00000000
+[40013][      debug]   proc_locker_unlock_time_sys= 0.00000000
+[40013][      debug]   proc_locker_unlock_time_wall= 0.00000000
+[40013][      debug]   restart_scheduler_useful_time_user= 0.00000000
+[40013][      debug]   restart_scheduler_useful_time_sys= 0.00000000
+[40013][      debug]   restart_scheduler_useful_time_wall= 0.00000000
+[40013][      debug]   restart_scheduler_total_time_user= 0.00000000
+[40013][      debug]   restart_scheduler_total_time_sys= 0.00000000
+[40013][      debug]   restart_scheduler_total_time_wall= 0.00000000
+[40013][      debug]   
+[40013][      debug] GC stats for backend_stats.gc_stats_add.:
+[40013][      debug]   minor_words: 3.08914e+09
+[40013][      debug]   promoted_words: 1.38686e+07
+[40013][      debug]   major_words: 2.18661e+07
+[40013][      debug]   minor_collections: 2981
+[40013][      debug]   major_collections: 74
+[40013][      debug]   compactions: 0
+[40013][      debug]   top_heap_words: 6976512
+[40013][      debug]   
+[40013][      debug] GC stats for backend_stats.gc_stats_max.:
+[40013][      debug]   minor_words: 1.49368e+09
+[40013][      debug]   promoted_words: 6.55755e+06
+[40013][      debug]   major_words: 1.04048e+07
+[40013][      debug]   minor_collections: 1439
+[40013][      debug]   major_collections: 31
+[40013][      debug]   compactions: 0
+[40013][      debug]   top_heap_words: 2026496
+[40013][      debug]   
+[40013][      debug] Average over 6 processes
+[40013][      debug] GC stats for backend_stats.gc_stats_average.:
+[40013][      debug]   minor_words: 5.14857e+08
+[40013][      debug]   promoted_words: 2.31143e+06
+[40013][      debug]   major_words: 3.64436e+06
+[40013][      debug]   minor_collections: 496
+[40013][      debug]   major_collections: 12
+[40013][      debug]   compactions: 0
+[40013][      debug]   top_heap_words: 1162752
+[40013][      debug]   
+[40013][      debug] Analysis phase finished in 7.123s
+[40013][      debug] backend_stats.scheduler_process_analysis_time_user= 0.06073700
+[40013][      debug] backend_stats.scheduler_process_analysis_time_sys= 0.03208500
+[40013][      debug] backend_stats.scheduler_process_analysis_time_wall= 7.12349096
+[40013][      debug] GC stats for analysis_scheduler:
+[40013][      debug]   minor_words: 3.71499e+06
+[40013][      debug]   promoted_words: 137645
+[40013][      debug]   major_words: 146351
+[40013][      debug]   minor_collections: 5
+[40013][      debug]   major_collections: 3
+[40013][      debug]   compactions: 1
+[40013][      debug]   top_heap_words: 875008
+[40013][      debug]   
+[40013][      debug] GC stats for report:
+[40013][      debug]   minor_words: 125675
+[40013][      debug]   promoted_words: 0
+[40013][      debug]   major_words: 1064
+[40013][      debug]   minor_collections: 0
+[40013][      debug]   major_collections: 0
+[40013][      debug]   compactions: 0
+[40013][      debug]   top_heap_words: 875008
+[40013][      debug]   
+[40013][      debug] GC stats for main_process_full:
+[40013][      debug]   minor_words: 5.38807e+06
+[40013][      debug]   promoted_words: 305350
+[40013][      debug]   major_words: 823326
+[40013][      debug]   minor_collections: 19
+[40013][      debug]   major_collections: 7
+[40013][      debug]   compactions: 2
+[40013][      debug]   top_heap_words: 875008
+[40013][      debug]   
+[40014][      debug] Sqlite write daemon: terminating

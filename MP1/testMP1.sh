@@ -5,6 +5,7 @@
 ### Correction of small problems in original code are marked with '###' -- V.2
 # V.3 corrects a NOT SO SMALL problem: in the previous version, xmod run over the $DIR changed by chmod!
 #
+set -m
 LOGDIR="/tmp"
 PROGCH="chmod"
 
