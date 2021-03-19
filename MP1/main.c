@@ -62,7 +62,6 @@ void hasAChild(char* newPath) {
     char* args[pInfo->args.nArgs + 1];
     makeNewArgs(args, newPath);
     registProcessCreation(args);
-    
 
     int id = fork();
     switch (id) {
@@ -83,6 +82,8 @@ void hasAChild(char* newPath) {
             exit(1);
         }
         default: {
+            //Acrescentamos estas duas linhas
+            if(pInfo->childrenPIDs == NULL) return;
             pInfo->childrenPIDs[pInfo->noChildren] = id;
             pInfo->noChildren++;
             break;
@@ -147,6 +148,7 @@ void executer(char* filePath) {
 
             }               
         }
+        free(dir);
 
     }
 }
@@ -156,11 +158,13 @@ void initializeProcess(char* argv[], int argc) {
 
     if(!getenv("firstRun")){
         initRegister();
+        if(pInfo == NULL) return;
         pInfo->isInitial = true;
     }
-    else    
+    else  {  
+        if(pInfo == NULL) return;
         pInfo->isInitial = false;
-
+    }
     pInfo->isParent = false;
     pInfo->noFilesChanged = 0;
     pInfo->noFilesFound = 0;

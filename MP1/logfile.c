@@ -19,6 +19,7 @@ void regitExecution( pid_t pid, char* event, char* info){
     double time = getMiliSeconds(initialTime);
 
     FILE *file = fopen(filename, "a");
+    if(file == NULL) {return;} // O PROGRAMA DEVIA ACABAR AQUI CERTO?? 
     char* newBuffer = (char*) malloc(300 * sizeof(char));
     setvbuf(file, newBuffer, _IOLBF, 300);
     fprintf(file, "%f ; %d ; %s ; %s\n", time, pid, event, info);
@@ -67,8 +68,10 @@ void registProcessCreation(char* args[]) {
 void registFileModf(mode_t oldMode, mode_t newMode, char* filePath) {
     char* fourDigitOldMode = (char*)malloc(10 * sizeof(char));
     fourDigitOctal(oldMode,fourDigitOldMode);
+    if(fourDigitOldMode == NULL) return;
     char* fourDigitNewMode = (char*)malloc(10 * sizeof(char));
     fourDigitOctal(newMode,fourDigitNewMode);
+    if(fourDigitNewMode == NULL) return; // Added this line
     size_t size=strlen(filePath)+strlen(fourDigitOldMode) + strlen(fourDigitNewMode) + 20;
     char *info=(char*)malloc(size); 
     snprintf(info,size, "%s : %s : %s", filePath, fourDigitOldMode, fourDigitNewMode);
