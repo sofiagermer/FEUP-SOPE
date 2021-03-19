@@ -22,7 +22,7 @@ mode_t getModeNum(const char* mode, const char* filePath, const mode_t oldMode) 
     int octal;
 
     //In octal
-    if ((octal = atoi(mode)) != 0) {
+    if ((octal = atoi(mode)) != 0 || strcmp(mode, "0000") == 0) {
         if (!checkOctalMode(mode)) {
             fprintf(stderr, "Invalid format for octal mode:%s\n", mode);
             endProgram(1);
@@ -129,19 +129,20 @@ mode_t findMode(const char* mode, const char* filePath, const mode_t oldMode) {
     //Depending on the operation, returns the updated mode correctly
     switch (operation) {
         case '+': {
-            return oldMode | newMode;
+            newMode = oldMode | newMode;
         }
         case '-': {
-            return oldMode & ~newMode;
+            newMode = oldMode & ~newMode;
         }
         case '=': {
-            return newMode;
+            newMode = newMode;
         }
         default: {
             fprintf(stderr, "Invalid type of mode operation:%c\n", operation);
             endProgram(1);
         }
     } 
+    return newMode;
 }
 
 mode_t convert(int octal) {

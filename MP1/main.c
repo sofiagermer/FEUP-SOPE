@@ -33,7 +33,7 @@ void parse() {
 }
 
 void executer(char* filePath) { 
-
+    
     mode_t oldMode = getFilePermissions(filePath);
     mode_t newMode = getModeNum(pInfo->modeString, filePath, oldMode);
 
@@ -46,7 +46,7 @@ void executer(char* filePath) {
 
 
     if (chmod(filePath, newMode) != 0) {
-        fprintf(stderr, "Error with chmod:%s\n", strerror(errno));
+        fprintf(stderr, "Error withaaa chmod:%s\n", strerror(errno));
         endProgram(1);
     } else {
         registFileModf(oldMode, newMode, filePath);
