@@ -47,13 +47,13 @@ int get_bit(int bits, int pos) {
 void fromOctalToString(mode_t mode,char* permissions) { 
     for(int i=0;i<9;i++){
         if((i==0||i==3||i==6)&&get_bit(mode,i)==1){
-            permissions[i]='r';
+            permissions[8-i]='x';
         } else if((i==1||i==4||i==7)&&get_bit(mode,i)==1){
-            permissions[i]='w';
+            permissions[8-i]='w';
         } else if((i==2||i==5||i==8)&&get_bit(mode,i)==1){
-            permissions[i]='x';
+            permissions[8-i]='r';
         } else{
-            permissions[i]='-';
+            permissions[8-i]='-';
         }
     }
     permissions[9]='\0';
