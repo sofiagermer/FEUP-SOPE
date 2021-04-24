@@ -1,7 +1,7 @@
 #Project Makefile
 CC = gcc
-LIBS = -lm
-CFLAGS = -Wall
+LIBS = -lm -lpthread
+CFLAGS = -Wall 
 
 c: main.o parser.o
 	$(CC) $(CFLAGS) -o c main.o parser.o $(LIBS)
