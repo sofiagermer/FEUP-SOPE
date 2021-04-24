@@ -45,7 +45,8 @@ void parse(info_t * info, int argc, char const * argv[])
         else
         {
             fifoname = (char*)malloc(strlen(argv[i])+1);  //[1]
-            strcpy(fifoname, argv[i]);
+            size_t size=strlen(argv[i])+1;
+            snprintf(fifoname,size,"%s",argv[i]);
         }
     }
     info->fifoname = fifoname;

@@ -40,16 +40,17 @@ int writeToPublicFifo(msg* message) {
     return 0;
 }
 
-void randomWait(){
+void randomWait(unsigned int i){
     //dorme qlq coisa entre 0 e 100 milisegundos
-    int time = (rand() % 100000);
+    int time = (rand_r(&i) % 100000);
     usleep(time);
 }
 
 void *threadHandler(void *i){
     msg message; 
     message.i =*(int *) i;
-    message.t=(rand()%10)+1;
+    unsigned seed=message.i;
+    message.t=(rand_r(&seed)%10)+1;
     message.pid=getpid();
     message.tid=pthread_self();
     message.res=-1;
@@ -58,7 +59,7 @@ void *threadHandler(void *i){
 
     //Creates private fifo name in format pid.tid
     char privateFifoName[200];
-    snprintf(privateFifoName,200,"/tmp/%d.%ld",message.pid,message.tid);
+    snprintf(privateFifoName,sizeof(privateFifoName),"/tmp/%d.%ld",message.pid,message.tid);
 
     if(mkfifo(privateFifoName, 0666) == -1){
         perror("Failed to create FIFO");
@@ -106,7 +107,7 @@ int main(int argc, char const * argv[]) {
         i++;
         ids = (pthread_t*)realloc(ids, i*sizeof(pthread_t));
         
-        randomWait();
+        randomWait(i);
     }
 
     for(int j=0; j<i; j++) {
