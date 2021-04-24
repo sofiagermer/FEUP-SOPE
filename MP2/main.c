@@ -1,119 +1,144 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <time.h>
-#include <pthread.h>
+#include "utils.h"
 #include "parser.h"
-
 
 info_t info;
 pthread_mutex_t lock;
 
-void regist(int i, pid_t pid, pthread_t tid, int res,char* oper){
-    printf("%ld ; %d ; %d ; %ld ; %d ; %s" ,time(NULL),i,pid,tid,res,oper);
-}
+void createFifo(char* name); //Create fifos
+void writeToPublicFifo(msg* message); //Senging messages
+void readFromPrivateFifo(msg* message); //Receiving response
+void *threadHandler(void *i); //Handler for each request thread
+void createRequests(); //Create requests and threads for each
 
-typedef struct{
-    int i;
-    int t;
-    pid_t pid;
-    pthread_t tid;
-    int res;
-} msg;
+void createFifo(char* name) {
 
-int createFifo(){
-    if(mkfifo(info.fifoname, 0666) == -1 && errno != EEXIST){
-        perror("Failed to create FIFO");
-        return 1;
+    if(mkfifo(name, 0666) == -1 && errno != EEXIST) {
+        fprintf(stderr,"Failed to create FIFO: %s\n", strerror(errno));
     }
-    return 0;
 }
 
-int writeToPublicFifo(msg* message) {
-    pthread_mutex_lock(&lock);
+void writeToPublicFifo(msg* message) {
+
+    //Locks the mutex
+    pthread_mutex_lock(&lock); 
+
+    //Creates fifo
     int np;
-    if(createFifo() != 0) return 1;
+    createFifo(info.fifoname);
+
+    //Writes to fifo
     while ((np = open (info.fifoname,O_WRONLY )) < 0);
     write(np,message,sizeof(*message));
-    regist(message->i,message->pid,message->tid,message->res,"IWANT");
+
+    //Closes fifo
     close(np);
+
+    //Logs
+    regist(message->i,message->pid,message->tid,message->res,"IWANT"); //Logs
+
+    //Unlocks mutex
     pthread_mutex_unlock(&lock);
-    return 0;
 }
 
-void randomWait(unsigned int i){
-    //dorme qlq coisa entre 0 e 100 milisegundos
-    int time = (rand_r(&i) % 100000);
-    usleep(time);
-}
-
-void *threadHandler(void *i){
-    msg message; 
-    message.i =*(int *) i;
-    unsigned seed=message.i;
-    message.t=(rand_r(&seed)%10)+1;
-    message.pid=getpid();
-    message.tid=pthread_self();
-    message.res=-1;
-
-    int privateFifo;
+void readFromPrivateFifo(msg* message) {
 
     //Creates private fifo name in format pid.tid
     char privateFifoName[200];
-    snprintf(privateFifoName,sizeof(privateFifoName),"/tmp/%d.%ld",message.pid,message.tid);
+    snprintf(privateFifoName,sizeof(privateFifoName),"/tmp/%d.%ld",message->pid,message->tid);
 
-    if(mkfifo(privateFifoName, 0666) == -1){
-        perror("Failed to create FIFO");
-        exit(1);
-    }
-
+    //Create, Open and Read Fifo
+    createFifo(privateFifoName);
+    int privateFifo;
     while ((privateFifo = open (privateFifoName, O_RDONLY)) < 0);
     read(privateFifo,&message,sizeof(message));
-
-    if(message.res==-1){
-        regist(message.i,message.pid,message.tid,message.res,"CLOSD");
-    }
-
-    else if(message.res!=-1) regist(message.i,message.pid,message.tid,message.res,"GOTRS");
-    else regist(message.i,message.pid,message.tid,message.res,"FAILD");
-
     close(privateFifo);
+
+    //Logs
+    if(message->res==-1){
+        regist(message->i,message->pid,message->tid,message->res,"CLOSD");
+    } else if (message->res!=-1) {
+        regist(message->i,message->pid,message->tid,message->res,"GOTRS");
+    } else {
+        regist(message->i,message->pid,message->tid,message->res,"FAILD");
+    }
+}
+
+void *threadHandler(void *i) {
+
+    //Message struct
+    msg message; 
+    createMessageStruct(&message, *((int*) i));
+
+    //Sends the message
+    writeToPublicFifo(&message);
+
+    //Receives message
+    readFromPrivateFifo(&message);
+    
     pthread_exit(NULL);
 }
 
-int main(int argc, char const * argv[]) {
-    if (pthread_mutex_init(&lock, NULL) != 0) {
-        printf("\n mutex init has failed\n");
-        return 1;
-    }
+void createRequests() {
 
+    //For the time
     time_t start,end;
     time(&start);
     double sec;
+    int identifier = 0;
 
-    int i = 1;
-    pthread_t *ids = (pthread_t*)malloc(1 * sizeof(pthread_t));
-    
+    pthread_t *ids = (pthread_t*) malloc(1 * sizeof(pthread_t));
+
+    while(sec < info.nsecs) {
+
+        time(&end);
+        sec = end - start;
+
+        identifier++;
+        ids = (pthread_t*) realloc(ids, identifier*sizeof(pthread_t));
+        
+        //Create thread for requests
+        if(pthread_create(&ids[identifier-1],NULL,threadHandler,&identifier)) { //Porque está identifier - 1?
+            fprintf(stderr, "Failed to create thread: %s\n", strerror(errno));
+            exit(1);
+        }
+        
+        //To avoid race conditions
+        randomWait(identifier);
+    }
+
+    free(ids);
+
+    //Wait for all threads to finish
+    for(int j = 0; j < identifier; j++) {
+        if (pthread_join(ids[j], NULL) != 0) {
+            fprintf(stderr, "Error in pthread_join: %s\n", strerror(errno));
+            exit(1);
+        }
+    }
+}
+
+int main(int argc, char const * argv[]) {
+
+    //Parse arguments
     parse(&info, argc, argv);
 
-
-    while(sec < info.nsecs){
-        time(&end);sec = end-start;
-        
-        if(pthread_create(&ids[i-1],NULL,threadHandler,&i)){
-            fprintf(stderr, "Failed to create thread: %s\n", strerror(errno));
-            return 1;
-        }
-
-        i++;
-        ids = (pthread_t*)realloc(ids, i*sizeof(pthread_t));
-        
-        randomWait(i);
+    //Unlock mutex
+    if (pthread_mutex_init(&lock, NULL) != 0) {
+        fprintf(stderr,"Mutex init has failed: %s\n", strerror(errno));
+        return 1;
     }
 
-    for(int j=0; j<i; j++) {
-        pthread_join(ids[j], NULL);
+    //Create Requests and Threads and wait for answer
+    createRequests();
+
+    //Lock mutex
+    if (pthread_mutex_destroy(&lock) != 0) {
+        fprintf(stderr,"Mutex init has failed: %s\n",strerror(errno));
+        return 1;
     }
-    pthread_mutex_destroy(&lock);
 
     return 0;
 }
