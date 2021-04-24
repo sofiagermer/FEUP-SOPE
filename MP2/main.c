@@ -87,7 +87,7 @@ int main(int argc, char const * argv[]) {
 
     time_t start,end;
     time(&start);
-    double sec,trigger = 3;
+    double sec;
 
     int i = 1;
     pthread_t *ids = (pthread_t*)malloc(1 * sizeof(pthread_t));
@@ -95,7 +95,7 @@ int main(int argc, char const * argv[]) {
     parse(&info, argc, argv);
 
 
-    while(sec < trigger){
+    while(sec < info.nsecs){
         time(&end);sec = end-start;
         
         if(pthread_create(&ids[i-1],NULL,threadHandler,&i)){
@@ -105,7 +105,7 @@ int main(int argc, char const * argv[]) {
 
         i++;
         ids = (pthread_t*)realloc(ids, i*sizeof(pthread_t));
-        printf("i:%d mils:%f\n", i, sec);
+        
         randomWait();
     }
 
