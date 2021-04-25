@@ -6,8 +6,10 @@
 
 info_t info;
 pthread_mutex_t lock;
-int np;
-bool flag;
+int publicnp;
+bool serverFlag; //Server closed
+bool timeFlag; //Time is up
+
 void createFifo(char* name); //Create fifos
 void writeToPublicFifo(msg* message); //Senging messages
 void readFromPrivateFifo(msg* message,char *privateFifoName); //Receiving response
@@ -27,7 +29,7 @@ void writeToPublicFifo(msg* message) {
     pthread_mutex_lock(&lock); 
 
     //Writes to fifo
-    write(np,message,sizeof(msg));
+    write(publicnp,message,sizeof(msg));
 
     //Logs
     regist(message->i,message->t,message->pid,message->tid,message->res,"IWANT"); 
@@ -40,17 +42,16 @@ void readFromPrivateFifo(msg* message,char *privateFifoName) {
 
     int privateFifo = open (privateFifoName, O_RDONLY);
 
-    read(privateFifo,message,sizeof(msg));
+    int result = read(privateFifo,message,sizeof(msg));
     close(privateFifo);
 
+    if(!timeFlag && result != 0) regist(message->i,message->t,message->pid,message->tid,message->res,"GAVUP");
+
     //Logs
-    if(message->res==-1&&flag==false){
-        regist(message->i,message->t,message->pid,message->tid,message->res,"GAVUP");
-    }
-    else if(message->res==-1){
-        regist(message->i,message->t,message->pid,message->tid,message->res,"CLOSD");
-        flag=false;
-    } else if (message->res!=-1) {
+    if(message->res == -1){
+        regist(message->i, message->t, message->pid, message->tid, message->res, "CLOSD");
+        serverFlag = false;
+    } else if (message->res != -1) {
         regist(message->i,message->t,message->pid,message->tid,message->res,"GOTRS");
     } 
 }
@@ -77,34 +78,42 @@ void *threadHandler(void *i) {
     pthread_exit(NULL);
 }
 
+void forcePipesClosure(int identifier, pthread_t* ids) {
+
+    //TODO
+}
+
 void createRequests() {
 
     //For the time
     time_t start,end;
     time(&start);
     double sec;
-    int identifier = 1;
 
+    int identifier = 0;
     pthread_t *ids = (pthread_t*)malloc(1 * sizeof(pthread_t));
-    flag=true;
+    serverFlag = true;
 
-    while(sec < info.nsecs&&flag) {
+    while(sec < info.nsecs && serverFlag) {
 
         time(&end);
         sec = end - start;
 
+        identifier++;
+        ids = (pthread_t*)realloc(ids, identifier * sizeof(pthread_t));
+
         //Create thread for requests
-        if(pthread_create(&ids[identifier-1],NULL,threadHandler,&identifier)) { //Porque está identifier - 1?
+        if(pthread_create(&ids[identifier - 1],NULL,threadHandler,&identifier)) { 
             fprintf(stderr, "Failed to create thread: %s\n", strerror(errno));
             exit(1);
         }
-        
-        identifier++;
-        ids = (pthread_t*)realloc(ids, identifier*sizeof(pthread_t));
 
         //To avoid race conditions
         randomWait(identifier);
     }
+
+    //Close Fifos
+    timeFlag = false;
 
     //Wait for all threads to finish
     for(int j = 0; j < identifier; j++) {
@@ -120,7 +129,7 @@ int main(int argc, char const * argv[]) {
     parse(&info, argc, argv);
     
     //Create Fifo(info.fifoname);
-    np = open (info.fifoname,O_WRONLY );
+    publicnp = open (info.fifoname,O_WRONLY );
     
     //Create mutex
     if (pthread_mutex_init(&lock, NULL) != 0) {
