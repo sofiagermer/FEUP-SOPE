@@ -124,7 +124,7 @@ void createRequests() {
     free(ids);
 }
 
-int main(int argc, char const * argv[]) {
+int main(int argc, char* argv[]) {
     //Parse arguments
     parse(&info, argc, argv);
     
