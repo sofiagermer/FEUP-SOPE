@@ -18,6 +18,7 @@ void createFifo(char* name) {
 
     if(mkfifo(name, 0666) == -1 && errno != EEXIST) {
         fprintf(stderr,"Failed to create FIFO: %s\n", strerror(errno));
+        exit(1);
     }
 }
 
@@ -25,19 +26,11 @@ void writeToPublicFifo(msg* message) {
     //Locks the mutex
     pthread_mutex_lock(&lock); 
 
-    //Creates fifo
-
-    
-
     //Writes to fifo
-    
-    write(np,message,sizeof(*message));
+    write(np,message,sizeof(msg));
 
     //Logs
     regist(message->i,message->t,message->pid,message->tid,message->res,"IWANT"); 
-
-    //Closes fifo
-    //close(np);
 
     //Unlocks mutex
     pthread_mutex_unlock(&lock);
@@ -45,11 +38,9 @@ void writeToPublicFifo(msg* message) {
 
 void readFromPrivateFifo(msg* message,char *privateFifoName) {
 
-    
-    int privateFifo;
-    while ((privateFifo = open (privateFifoName, O_RDONLY)) < 0);
-    //ver os tamanhos ta a dar erro fsr
-    read(privateFifo,message,2000);
+    int privateFifo = open (privateFifoName, O_RDONLY);
+
+    read(privateFifo,message,sizeof(msg));
     close(privateFifo);
 
     //Logs
@@ -71,7 +62,7 @@ void *threadHandler(void *i) {
     createMessageStruct(&message, *(int*) i);
 
     //Creates private fifo name in format pid.tid
-    char privateFifoName[2000];
+    char privateFifoName[200];
     snprintf(privateFifoName,sizeof(privateFifoName),"/tmp/%d.%ld",message.pid,message.tid);
 
     //Create, Open and Read Fifo
@@ -96,6 +87,7 @@ void createRequests() {
 
     pthread_t *ids = (pthread_t*)malloc(1 * sizeof(pthread_t));
     flag=true;
+
     while(sec < info.nsecs&&flag) {
 
         time(&end);
@@ -109,15 +101,15 @@ void createRequests() {
         
         identifier++;
         ids = (pthread_t*)realloc(ids, identifier*sizeof(pthread_t));
+
         //To avoid race conditions
         randomWait(identifier);
     }
-    flag=false;
+
     //Wait for all threads to finish
     for(int j = 0; j < identifier; j++) {
         if (pthread_join(ids[j], NULL) != 0) {
             fprintf(stderr, "Error in pthread_join: %s\n", strerror(errno));
-            exit(1);
         }
     }
     free(ids);
@@ -127,10 +119,10 @@ int main(int argc, char const * argv[]) {
     //Parse arguments
     parse(&info, argc, argv);
     
-    //createFifo(info.fifoname);
-    while ((np = open (info.fifoname,O_WRONLY )) < 0);
+    //Create Fifo(info.fifoname);
+    np = open (info.fifoname,O_WRONLY );
     
-    //Unlock mutex
+    //Create mutex
     if (pthread_mutex_init(&lock, NULL) != 0) {
         fprintf(stderr,"Mutex init has failed: %s\n", strerror(errno));
         return 1;
@@ -139,7 +131,7 @@ int main(int argc, char const * argv[]) {
     //Create Requests and Threads and wait for answer
     createRequests();
 
-    //Lock mutex
+    //Destroy mutex
     if (pthread_mutex_destroy(&lock) != 0) {
         fprintf(stderr,"Mutex init has failed: %s\n",strerror(errno));
         return 1;
