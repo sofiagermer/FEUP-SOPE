@@ -6,7 +6,8 @@
 
 info_t info;
 pthread_mutex_t lock;
-
+int np;
+bool flag;
 void createFifo(char* name); //Create fifos
 void writeToPublicFifo(msg* message); //Senging messages
 void readFromPrivateFifo(msg* message,char *privateFifoName); //Receiving response
@@ -21,23 +22,22 @@ void createFifo(char* name) {
 }
 
 void writeToPublicFifo(msg* message) {
-
     //Locks the mutex
     pthread_mutex_lock(&lock); 
 
     //Creates fifo
-    int np;
-    createFifo(info.fifoname);
+
+    
 
     //Writes to fifo
-    while ((np = open (info.fifoname,O_WRONLY )) < 0);
+    
     write(np,message,sizeof(*message));
 
     //Logs
     regist(message->i,message->t,message->pid,message->tid,message->res,"IWANT"); 
 
     //Closes fifo
-    close(np);
+    //close(np);
 
     //Unlocks mutex
     pthread_mutex_unlock(&lock);
@@ -53,8 +53,12 @@ void readFromPrivateFifo(msg* message,char *privateFifoName) {
     close(privateFifo);
 
     //Logs
-    if(message->res==-1){
+    if(message->res==-1&&flag==false){
+        regist(message->i,message->t,message->pid,message->tid,message->res,"GAVUP");
+    }
+    else if(message->res==-1){
         regist(message->i,message->t,message->pid,message->tid,message->res,"CLOSD");
+        flag=false;
     } else if (message->res!=-1) {
         regist(message->i,message->t,message->pid,message->tid,message->res,"GOTRS");
     } 
@@ -91,8 +95,8 @@ void createRequests() {
     int identifier = 1;
 
     pthread_t *ids = (pthread_t*)malloc(1 * sizeof(pthread_t));
-
-    while(sec < info.nsecs) {
+    flag=true;
+    while(sec < info.nsecs&&flag) {
 
         time(&end);
         sec = end - start;
@@ -108,7 +112,7 @@ void createRequests() {
         //To avoid race conditions
         randomWait(identifier);
     }
-
+    flag=false;
     //Wait for all threads to finish
     for(int j = 0; j < identifier; j++) {
         if (pthread_join(ids[j], NULL) != 0) {
@@ -120,10 +124,12 @@ void createRequests() {
 }
 
 int main(int argc, char const * argv[]) {
-
     //Parse arguments
     parse(&info, argc, argv);
-
+    
+    //createFifo(info.fifoname);
+    while ((np = open (info.fifoname,O_WRONLY )) < 0);
+    
     //Unlock mutex
     if (pthread_mutex_init(&lock, NULL) != 0) {
         fprintf(stderr,"Mutex init has failed: %s\n", strerror(errno));
