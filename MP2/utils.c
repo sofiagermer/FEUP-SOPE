@@ -1,8 +1,8 @@
 #include "utils.h"
 
 
-void regist(int i, pid_t pid, pthread_t tid, int res,char* oper) {
-    printf("%ld ; %d ; %d ; %ld ; %d ; %s" ,time(NULL),i,pid,tid,res,oper);
+void regist(int i,int t, pid_t pid, pthread_t tid, int res,char* oper) {
+    printf("%ld ; %d ; %d ; %d ; %ld ; %d ; %s\n" ,time(NULL),i,t,pid,tid,res,oper);
 }
 
 void randomWait(unsigned int i) {
@@ -14,7 +14,7 @@ void randomWait(unsigned int i) {
 void createMessageStruct(msg* message, int i) {
     message->i = i;
     unsigned seed = message->i;
-    message->t = (rand_r(&seed) % 10) + 1;
+    message->t = (rand_r(&seed) % 9) + 1;
     message->pid = getpid();
     message->tid = pthread_self();
     message->res = -1;

@@ -9,7 +9,7 @@ pthread_mutex_t lock;
 
 void createFifo(char* name); //Create fifos
 void writeToPublicFifo(msg* message); //Senging messages
-void readFromPrivateFifo(msg* message); //Receiving response
+void readFromPrivateFifo(msg* message,char *privateFifoName); //Receiving response
 void *threadHandler(void *i); //Handler for each request thread
 void createRequests(); //Create requests and threads for each
 
@@ -32,51 +32,54 @@ void writeToPublicFifo(msg* message) {
     //Writes to fifo
     while ((np = open (info.fifoname,O_WRONLY )) < 0);
     write(np,message,sizeof(*message));
-
+    //Logs
+    regist(message->i,message->t,message->pid,message->tid,message->res,"IWANT"); //Logs
     //Closes fifo
     close(np);
 
-    //Logs
-    regist(message->i,message->pid,message->tid,message->res,"IWANT"); //Logs
+    
 
     //Unlocks mutex
     pthread_mutex_unlock(&lock);
 }
 
-void readFromPrivateFifo(msg* message) {
+void readFromPrivateFifo(msg* message,char *privateFifoName) {
 
-    //Creates private fifo name in format pid.tid
-    char privateFifoName[200];
-    snprintf(privateFifoName,sizeof(privateFifoName),"/tmp/%d.%ld",message->pid,message->tid);
-
-    //Create, Open and Read Fifo
-    createFifo(privateFifoName);
+    
     int privateFifo;
     while ((privateFifo = open (privateFifoName, O_RDONLY)) < 0);
-    read(privateFifo,&message,sizeof(message));
+    //ver os tamanhos ta a dar erro fsr
+    read(privateFifo,message,2000);
     close(privateFifo);
 
     //Logs
     if(message->res==-1){
-        regist(message->i,message->pid,message->tid,message->res,"CLOSD");
+        regist(message->i,message->t,message->pid,message->tid,message->res,"CLOSD");
     } else if (message->res!=-1) {
-        regist(message->i,message->pid,message->tid,message->res,"GOTRS");
+        regist(message->i,message->t,message->pid,message->tid,message->res,"GOTRS");
     } else {
-        regist(message->i,message->pid,message->tid,message->res,"FAILD");
+        //isto ta mal
+        regist(message->i,message->t,message->pid,message->tid,message->res,"FAILD");
     }
 }
 
 void *threadHandler(void *i) {
 
     //Message struct
-    msg message; 
-    createMessageStruct(&message, *((int*) i));
+    msg message;
+    createMessageStruct(&message, *(int*) i);
 
+    //Creates private fifo name in format pid.tid
+    char privateFifoName[2000];
+    snprintf(privateFifoName,sizeof(privateFifoName),"/tmp/%d.%ld",message.pid,message.tid);
+
+    //Create, Open and Read Fifo
+    createFifo(privateFifoName);
     //Sends the message
     writeToPublicFifo(&message);
 
     //Receives message
-    readFromPrivateFifo(&message);
+    readFromPrivateFifo(&message,privateFifoName);
     
     pthread_exit(NULL);
 }
@@ -87,29 +90,28 @@ void createRequests() {
     time_t start,end;
     time(&start);
     double sec;
-    int identifier = 0;
+    int identifier = 1;
 
-    pthread_t *ids = (pthread_t*) malloc(1 * sizeof(pthread_t));
+    pthread_t *ids = (pthread_t*)malloc(1 * sizeof(pthread_t));
 
     while(sec < info.nsecs) {
 
         time(&end);
         sec = end - start;
 
-        identifier++;
-        ids = (pthread_t*) realloc(ids, identifier*sizeof(pthread_t));
-        
         //Create thread for requests
         if(pthread_create(&ids[identifier-1],NULL,threadHandler,&identifier)) { //Porque está identifier - 1?
             fprintf(stderr, "Failed to create thread: %s\n", strerror(errno));
             exit(1);
         }
         
+        identifier++;
+        ids = (pthread_t*)realloc(ids, identifier*sizeof(pthread_t));
         //To avoid race conditions
         randomWait(identifier);
     }
 
-    free(ids);
+    
 
     //Wait for all threads to finish
     for(int j = 0; j < identifier; j++) {
@@ -118,6 +120,7 @@ void createRequests() {
             exit(1);
         }
     }
+    free(ids);
 }
 
 int main(int argc, char const * argv[]) {
