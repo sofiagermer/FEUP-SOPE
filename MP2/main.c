@@ -1,101 +1,56 @@
-#include <fcntl.h>
-#include <stdbool.h>
 #include <time.h>
-#include "utils.h"
+#include "fifos.h"
 #include "parser.h"
 
-info_t info;
-pthread_mutex_t lock;
-int publicnp;
+//GLOBAL VARS
+info_t info; //Info from args
+pthread_mutex_t lock; //Mutex to enter public fifo
 bool serverFlag; //Server closed
 bool timeFlag; //Time is up
+int publicFifoDesc; //Descriptor of the public named pipe
 
-void createFifo(char* name); //Create fifos
-void writeToPublicFifo(msg* message); //Senging messages
-void readFromPrivateFifo(msg* message,char *privateFifoName); //Receiving response
+//FUNCS
 void *threadHandler(void *i); //Handler for each request thread
-void createRequests(); //Create requests and threads for each
-
-void createFifo(char* name) {
-
-    if(mkfifo(name, 0666) == -1 && errno != EEXIST) {
-        fprintf(stderr,"Failed to create FIFO: %s\n", strerror(errno));
-        exit(1);
-    }
-}
-
-void writeToPublicFifo(msg* message) {
-    //Locks the mutex
-    pthread_mutex_lock(&lock); 
-
-    //Writes to fifo
-    write(publicnp,message,sizeof(msg));
-
-    //Logs
-    regist(message->i,message->t,message->pid,message->tid,message->res,"IWANT"); 
-
-    //Unlocks mutex
-    pthread_mutex_unlock(&lock);
-}
-
-void readFromPrivateFifo(msg* message,char *privateFifoName) {
-
-    int privateFifo = open (privateFifoName, O_RDONLY);
-
-    int result = read(privateFifo,message,sizeof(msg));
-    close(privateFifo);
-
-    if(!timeFlag && result != 0) regist(message->i,message->t,message->pid,message->tid,message->res,"GAVUP");
-
-    //Logs
-    if(message->res == -1){
-        regist(message->i, message->t, message->pid, message->tid, message->res, "CLOSD");
-        serverFlag = false;
-    } else if (message->res != -1) {
-        regist(message->i,message->t,message->pid,message->tid,message->res,"GOTRS");
-    } 
-}
+void handleRequests(); //Create requests and threads for each
 
 void *threadHandler(void *i) {
 
     //Message struct
-    msg message;
-    createMessageStruct(&message, *(int*) i);
+    msg* message = (msg*) malloc(sizeof(msg));
+    createMessageStruct(message, *(int*) i);
 
-    //Creates private fifo name in format pid.tid
+    //Creates private fifo's name in format pid.tid
     char privateFifoName[200];
-    snprintf(privateFifoName,sizeof(privateFifoName),"/tmp/%d.%ld",message.pid,message.tid);
+    snprintf(privateFifoName, sizeof(privateFifoName), "/tmp/%d.%ld", message->pid, message->tid);
 
-    //Create, Open and Read Fifo
+    //Create Fifo
     createFifo(privateFifoName);
 
     //Sends the message
-    writeToPublicFifo(&message);
+    writeToPublicFifo(message);
 
     //Receives message
-    readFromPrivateFifo(&message,privateFifoName);
-    
+    readFromPrivateFifo(message,privateFifoName);
+
+    free(message);
     pthread_exit(NULL);
 }
 
-void forcePipesClosure(int identifier, pthread_t* ids) {
-
-    //TODO
-}
-
-void createRequests() {
+void handleRequests() {
 
     //For the time
     time_t start,end;
     time(&start);
     double sec;
 
-    int identifier = 0;
+    //Threads and stoping conds
+    unsigned int identifier = 0;
     pthread_t *ids = (pthread_t*)malloc(1 * sizeof(pthread_t));
     serverFlag = true;
+    timeFlag = true;
 
+    //Cycle to create threads
     while(sec < info.nsecs && serverFlag) {
-
         time(&end);
         sec = end - start;
 
@@ -103,7 +58,7 @@ void createRequests() {
         ids = (pthread_t*)realloc(ids, identifier * sizeof(pthread_t));
 
         //Create thread for requests
-        if(pthread_create(&ids[identifier - 1],NULL,threadHandler,&identifier)) { 
+        if (pthread_create(&ids[identifier - 1],NULL,threadHandler,&identifier)) { 
             fprintf(stderr, "Failed to create thread: %s\n", strerror(errno));
             exit(1);
         }
@@ -114,6 +69,7 @@ void createRequests() {
 
     //Close Fifos
     timeFlag = false;
+    forcePipesClosure(identifier);
 
     //Wait for all threads to finish
     for(int j = 0; j < identifier; j++) {
@@ -124,12 +80,14 @@ void createRequests() {
     free(ids);
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, const char* argv[]) {
+
     //Parse arguments
     parse(&info, argc, argv);
     
     //Create Fifo(info.fifoname);
-    publicnp = open (info.fifoname,O_WRONLY );
+    createFifo(info.fifoname);
+    publicFifoDesc = open (info.fifoname,O_WRONLY );
     
     //Create mutex
     if (pthread_mutex_init(&lock, NULL) != 0) {
@@ -138,7 +96,7 @@ int main(int argc, char* argv[]) {
     }
 
     //Create Requests and Threads and wait for answer
-    createRequests();
+    handleRequests();
 
     //Destroy mutex
     if (pthread_mutex_destroy(&lock) != 0) {
