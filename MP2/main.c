@@ -57,10 +57,7 @@ void readFromPrivateFifo(msg* message,char *privateFifoName) {
         regist(message->i,message->t,message->pid,message->tid,message->res,"CLOSD");
     } else if (message->res!=-1) {
         regist(message->i,message->t,message->pid,message->tid,message->res,"GOTRS");
-    } else {
-        //isto ta mal
-        regist(message->i,message->t,message->pid,message->tid,message->res,"FAILD");
-    }
+    } 
 }
 
 void *threadHandler(void *i) {
