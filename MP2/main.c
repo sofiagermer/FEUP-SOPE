@@ -32,12 +32,12 @@ void writeToPublicFifo(msg* message) {
     //Writes to fifo
     while ((np = open (info.fifoname,O_WRONLY )) < 0);
     write(np,message,sizeof(*message));
+
     //Logs
-    regist(message->i,message->t,message->pid,message->tid,message->res,"IWANT"); //Logs
+    regist(message->i,message->t,message->pid,message->tid,message->res,"IWANT"); 
+
     //Closes fifo
     close(np);
-
-    
 
     //Unlocks mutex
     pthread_mutex_unlock(&lock);
@@ -75,6 +75,7 @@ void *threadHandler(void *i) {
 
     //Create, Open and Read Fifo
     createFifo(privateFifoName);
+
     //Sends the message
     writeToPublicFifo(&message);
 
@@ -110,8 +111,6 @@ void createRequests() {
         //To avoid race conditions
         randomWait(identifier);
     }
-
-    
 
     //Wait for all threads to finish
     for(int j = 0; j < identifier; j++) {
