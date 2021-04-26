@@ -7,8 +7,8 @@ info_t info; //Info from args
 pthread_mutex_t lock; //Mutex to enter public fifo
 bool serverFlag; //Server closed
 bool timeFlag; //Time is up
- //Descriptor of the public named pipe
-extern int publicFifoDesc; 
+extern int publicFifoDesc; //Descriptor of the public named pipe
+
 //FUNCS
 void *threadHandler(void *i); //Handler for each request thread
 void handleRequests(); //Create requests and threads for each
@@ -17,6 +17,7 @@ void *threadHandler(void *i) {
 
     //Message struct
     msg* message = (msg*) malloc(sizeof(msg));
+    if(message == NULL) return NULL;
     createMessageStruct(message, *(int*) i);
 
     //Creates private fifo's name in format pid.tid
@@ -41,7 +42,7 @@ void handleRequests() {
     //For the time
     time_t start,end;
     time(&start);
-    double sec;
+    double sec = 0;
 
     //Threads and stoping conds
     unsigned int identifier = 0;
@@ -104,5 +105,7 @@ int main(int argc, const char* argv[]) {
         return 1;
     }
 
+    close(publicFifoDesc);
+    free(info.fifoname);
     return 0;
 }
