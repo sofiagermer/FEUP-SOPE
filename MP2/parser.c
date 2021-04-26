@@ -1,6 +1,6 @@
 #include "parser.h"
 
-int is_positive_integer(const char * num) { //move function to utils file or together with parse()
+int is_positive_integer(const char * num) { 
     for(unsigned i = 0; i < strlen(num); i++) {
         if (isdigit(num[i])) {
             continue;
