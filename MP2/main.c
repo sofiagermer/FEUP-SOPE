@@ -7,8 +7,8 @@ info_t info; //Info from args
 pthread_mutex_t lock; //Mutex to enter public fifo
 bool serverFlag; //Server closed
 bool timeFlag; //Time is up
-int publicFifoDesc; //Descriptor of the public named pipe
-
+ //Descriptor of the public named pipe
+extern int publicFifoDesc; 
 //FUNCS
 void *threadHandler(void *i); //Handler for each request thread
 void handleRequests(); //Create requests and threads for each
@@ -84,10 +84,10 @@ int main(int argc, const char* argv[]) {
 
     //Parse arguments
     parse(&info, argc, argv);
-    
+    printf("%s\n",info.fifoname);
     //Create Fifo(info.fifoname);
     createFifo(info.fifoname);
-    publicFifoDesc = open (info.fifoname,O_WRONLY );
+    publicFifoDesc = open(info.fifoname,O_WRONLY );
     
     //Create mutex
     if (pthread_mutex_init(&lock, NULL) != 0) {

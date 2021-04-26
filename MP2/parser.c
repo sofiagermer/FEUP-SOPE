@@ -23,7 +23,6 @@ void parse(info_t * info, int argc, char const * argv[]) {
         exit(1);
     }
 
-    char* fifoname;
     int nsecs = 0;
 
     //Retrieving arguments
@@ -37,14 +36,12 @@ void parse(info_t * info, int argc, char const * argv[]) {
             nsecs = atoi(argv[i+1]);
             i++;
         } else { //Fifopath
-            fifoname = (char*) malloc(strlen(argv[i])+1);  
+            info->fifoname = (char*) malloc(strlen(argv[i])+1);  
             size_t size=strlen(argv[i])+1;
-            snprintf(fifoname,size,"%s",argv[i]);
+            snprintf(info->fifoname,size,"%s",argv[i]);
         }
     }
 
     //Struct
-    info->fifoname = fifoname;
     info->nsecs = nsecs;
-    free(fifoname);
 }

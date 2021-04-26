@@ -1,6 +1,6 @@
 #include "fifos.h"
 
-extern int publicFifoDesc; 
+int publicFifoDesc; 
 extern pthread_mutex_t lock; 
 extern bool timeFlag;
 extern bool serverFlag;
