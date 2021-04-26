@@ -41,7 +41,6 @@ void parse(info_t * info, int argc, char const * argv[]) {
             snprintf(info->fifoname,size,"%s",argv[i]);
         }
     }
-
     //Struct
     info->nsecs = nsecs;
 }
