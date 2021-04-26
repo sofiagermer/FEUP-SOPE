@@ -44,19 +44,27 @@ void readFromPrivateFifo(msg* message,char *privateFifoName) {
 
     //Open, read, close
     if ((privateFifoDesc = open (privateFifoName, O_RDONLY)) == -1) {
-        fprintf(stderr, "Failed to open from private fifo: %s\n", strerror(errno));
-        exit(1);
+        if (timeFlag) {
+            fprintf(stderr, "Failed to open from private fifo: %s\n", strerror(errno));
+            exit(1);
+        } else {
+            regist(message->i,message->t,message->pid,message->tid,message->res,"GAVUP");
+            return;
+        }
     }
     if ((result = read(privateFifoDesc,message,sizeof(msg))) == -1 && timeFlag) {
-        fprintf(stderr, "Failed to read from private fifo: %s\n", strerror(errno));
-        exit(1);
+        if (timeFlag) {
+            fprintf(stderr, "Failed to read from private fifo: %s\n", strerror(errno));
+            exit(1);
+        } else {
+            regist(message->i,message->t,message->pid,message->tid,message->res,"GAVUP");
+            return;
+        }
     }
     close(privateFifoDesc);
 
     //Logs
-    if(!timeFlag && result != 0) {
-        regist(message->i,message->t,message->pid,message->tid,message->res,"GAVUP");
-    } else if(message->res == -1){
+    if(message->res == -1){
         regist(message->i, message->t, message->pid, message->tid, message->res,"CLOSD");
         serverFlag = false;
     } else if (message->res != -1) {
