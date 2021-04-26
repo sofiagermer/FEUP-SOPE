@@ -85,9 +85,9 @@ int main(int argc, const char* argv[]) {
 
     //Parse arguments
     parse(&info, argc, argv);
-    printf("%s\n",info.fifoname);
+
     //Create Fifo(info.fifoname);
-    createFifo(info.fifoname);
+    //createFifo(info.fifoname); WE ASSUMED SERVER SECURES THE CREATION OF PUBLIC FIFO
     publicFifoDesc = open(info.fifoname,O_WRONLY );
     
     //Create mutex
