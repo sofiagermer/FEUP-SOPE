@@ -46,7 +46,10 @@ void handleRequests() {
 
     //Threads and stoping conds
     unsigned int identifier = 0;
-    pthread_t *ids = (pthread_t*)malloc(1 * sizeof(pthread_t));
+    pthread_attr_t threadsAttr;
+    pthread_attr_init(&threadsAttr);
+    pthread_attr_setdetachstate(&threadsAttr, PTHREAD_CREATE_DETACHED); //No need to wait for other threads
+
     serverFlag = true;
     timeFlag = true;
 
@@ -56,10 +59,10 @@ void handleRequests() {
         sec = end - start;
 
         identifier++;
-        ids = (pthread_t*)realloc(ids, identifier * sizeof(pthread_t));
+        pthread_t threadID;
 
         //Create thread for requests
-        if (pthread_create(&ids[identifier - 1],NULL,threadHandler,&identifier)) { 
+        if (pthread_create(&threadID,&threadsAttr,threadHandler,&identifier)) { 
             fprintf(stderr, "Failed to create thread: %s\n", strerror(errno));
             exit(1);
         }
@@ -68,17 +71,11 @@ void handleRequests() {
         randomWait(identifier);
     }
 
+    pthread_attr_destroy(&threadsAttr);
+
     //Close Fifos
     timeFlag = false;
     forcePipesClosure(identifier);
-
-    //Wait for all threads to finish
-    for(int j = 0; j < identifier; j++) {
-        if (pthread_join(ids[j], NULL) != 0) {
-            fprintf(stderr, "Error in pthread_join: %s\n", strerror(errno));
-        }
-    }
-    free(ids);
 }
 
 int main(int argc, const char* argv[]) {
@@ -86,26 +83,15 @@ int main(int argc, const char* argv[]) {
     //Parse arguments
     parse(&info, argc, argv);
 
-    //Create Fifo(info.fifoname);
-    //createFifo(info.fifoname); WE ASSUMED SERVER SECURES THE CREATION OF PUBLIC FIFO
+    //Open Fifo(info.fifoname);
     publicFifoDesc = open(info.fifoname,O_WRONLY );
-    
-    //Create mutex
-    if (pthread_mutex_init(&lock, NULL) != 0) {
-        fprintf(stderr,"Mutex init has failed: %s\n", strerror(errno));
-        return 1;
-    }
 
     //Create Requests and Threads and wait for answer
     handleRequests();
 
-    //Destroy mutex
-    if (pthread_mutex_destroy(&lock) != 0) {
-        fprintf(stderr,"Mutex init has failed: %s\n",strerror(errno));
-        return 1;
-    }
-
+    //Close Public Fifo
     close(publicFifoDesc);
     free(info.fifoname);
-    return 0;
+
+    pthread_exit(NULL);
 }
