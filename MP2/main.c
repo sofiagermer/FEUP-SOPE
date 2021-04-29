@@ -9,8 +9,8 @@ pthread_mutex_t lock; //Mutex to enter public fifo
 bool serverFlag; //Server closed
 bool timeFlag; //Time is up
 extern int publicFifoDesc; //Descriptor of the public named pipe
-extern struct node * head;
-extern struct node * tail;
+extern struct node * head; //Linked list head
+extern struct node * tail; //Linked list tail
 
 
 //FUNCS
@@ -68,6 +68,7 @@ void handleRequests() {
             fprintf(stderr, "Failed to create thread: %s\n", strerror(errno));
             exit(1);
         }
+        //Adds id to a linked list
         push(id);
         //To avoid race conditions
         randomWait(identifier);

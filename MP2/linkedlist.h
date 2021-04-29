@@ -9,9 +9,6 @@ struct node{
    struct node * next;
 };
 
-
-
-
 //insert link at the end of the list
 void push(pthread_t data);
 
