@@ -39,6 +39,7 @@ void readFromPrivateFifo(msg* message,char *privateFifoName) {
             exit(1);
         } else {
             regist(message->i,message->t,message->pid,message->tid,message->res,"GAVUP");
+            close(privateFifoDesc);
             return;
         }
     }
@@ -48,6 +49,7 @@ void readFromPrivateFifo(msg* message,char *privateFifoName) {
             exit(1);
         } else {
             regist(message->i,message->t,message->pid,message->tid,message->res,"GAVUP");
+            close(privateFifoDesc);
             return;
         }
     }
