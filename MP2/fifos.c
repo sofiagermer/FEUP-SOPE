@@ -15,11 +15,6 @@ void createFifo(char* name) {
 
 void writeToPublicFifo(msg* message) {
     
-    //Locks the mutex
-    if (pthread_mutex_lock(&lock) != 0) {
-        fprintf(stderr, "Failed to lock mutex: %s\n", strerror(errno));
-        exit(1);
-    } 
 
     //Writes to fifo
     if (write(publicFifoDesc,message,sizeof(msg)) < 0) {
@@ -30,11 +25,6 @@ void writeToPublicFifo(msg* message) {
     //Logs
     regist(message->i,message->t,message->pid,message->tid,message->res,"IWANT"); 
 
-    //Unlocks mutex
-    if (pthread_mutex_unlock(&lock) != 0) {
-        fprintf(stderr, "Failed to unlock mutex: %s\n", strerror(errno));
-        exit(1);
-    } 
 }
 
 void readFromPrivateFifo(msg* message,char *privateFifoName) {
