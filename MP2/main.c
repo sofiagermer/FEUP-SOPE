@@ -1,6 +1,7 @@
 #include <time.h>
 #include "fifos.h"
 #include "parser.h"
+#include "linkedlist.h"
 
 //GLOBAL VARS
 info_t info; //Info from args
@@ -8,10 +9,15 @@ pthread_mutex_t lock; //Mutex to enter public fifo
 bool serverFlag; //Server closed
 bool timeFlag; //Time is up
 extern int publicFifoDesc; //Descriptor of the public named pipe
+extern struct node * head;
+extern struct node * tail;
+
 
 //FUNCS
 void *threadHandler(void *i); //Handler for each request thread
 void handleRequests(); //Create requests and threads for each
+
+
 
 void *threadHandler(void *i) {
 
@@ -46,7 +52,7 @@ void handleRequests() {
 
     //Threads and stoping conds
     unsigned int identifier = 0;
-    pthread_t *ids = (pthread_t*)malloc(1 * sizeof(pthread_t));
+    pthread_t id;
     serverFlag = true;
     timeFlag = true;
 
@@ -56,14 +62,13 @@ void handleRequests() {
         sec = end - start;
 
         identifier++;
-        ids = (pthread_t*)realloc(ids, identifier * sizeof(pthread_t));
 
         //Create thread for requests
-        if (pthread_create(&ids[identifier - 1],NULL,threadHandler,&identifier)) { 
+        if (pthread_create(&id,NULL,threadHandler,&identifier)) { 
             fprintf(stderr, "Failed to create thread: %s\n", strerror(errno));
             exit(1);
         }
-
+        push(id);
         //To avoid race conditions
         randomWait(identifier);
     }
@@ -73,12 +78,11 @@ void handleRequests() {
     forcePipesClosure(identifier);
 
     //Wait for all threads to finish
-    for(int j = 0; j < identifier; j++) {
-        if (pthread_join(ids[j], NULL) != 0) {
+    while(!isEmpty()){
+        if (pthread_join(pop(), NULL) != 0) {
             fprintf(stderr, "Error in pthread_join: %s\n", strerror(errno));
         }
     }
-    free(ids);
 }
 
 int main(int argc, const char* argv[]) {
