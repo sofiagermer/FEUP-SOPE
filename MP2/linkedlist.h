@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 struct node{
-   int value;
+   pthread_t value;
    struct node * next;
 };
 
