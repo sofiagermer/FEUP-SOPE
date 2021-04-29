@@ -10,14 +10,11 @@ void push(pthread_t data) {
     if (head == NULL) {
         head = node;
         tail = head;
-    }
-    else {
+    } else {
         tail->next = node;
         tail = node;
     }
-    
 }
-
 
 pthread_t pop() {
     struct node * toDelete=head;
@@ -26,7 +23,6 @@ pthread_t pop() {
     free(toDelete);
     return retVal;
 }
-
 
 bool isEmpty() {
     return head == NULL;

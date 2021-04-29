@@ -11,18 +11,14 @@ extern int publicFifoDesc; //Descriptor of the public named pipe
 extern struct node * head; //Linked list head
 extern struct node * tail; //Linked list tail
 
-
 //FUNCS
 void *threadHandler(void *i); //Handler for each request thread
 void handleRequests(); //Create requests and threads for each
-
-
 
 void *threadHandler(void *i) {
 
     //Message struct
     msg* message = (msg*) malloc(sizeof(msg));
-    if(message == NULL) return NULL;
     createMessageStruct(message, *(int*) i);
 
     //Creates private fifo's name in format pid.tid
@@ -90,15 +86,13 @@ int main(int argc, const char* argv[]) {
     //Parse arguments
     parse(&info, argc, argv);
 
-    //Create Fifo(info.fifoname);
-    //createFifo(info.fifoname); WE ASSUMED SERVER SECURES THE CREATION OF PUBLIC FIFO
+    //Open Fifo(info.fifoname);
     publicFifoDesc = open(info.fifoname,O_WRONLY );
     
-
     //Create Requests and Threads and wait for answer
     handleRequests();
 
-
+    //Close fifo
     close(publicFifoDesc);
     free(info.fifoname);
     return 0;

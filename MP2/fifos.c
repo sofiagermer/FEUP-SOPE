@@ -1,7 +1,6 @@
 #include "fifos.h"
 
 int publicFifoDesc; 
-extern pthread_mutex_t lock; 
 extern bool timeFlag;
 extern bool serverFlag;
 
@@ -15,7 +14,6 @@ void createFifo(char* name) {
 
 void writeToPublicFifo(msg* message) {
     
-
     //Writes to fifo
     if (write(publicFifoDesc,message,sizeof(msg)) < 0) {
         fprintf(stderr, "Failed to write to public fifo: %s\n", strerror(errno));
@@ -24,7 +22,6 @@ void writeToPublicFifo(msg* message) {
 
     //Logs
     regist(message->i,message->t,message->pid,message->tid,message->res,"IWANT"); 
-
 }
 
 void readFromPrivateFifo(msg* message,char *privateFifoName) {

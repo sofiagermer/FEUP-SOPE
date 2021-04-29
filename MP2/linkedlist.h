@@ -9,12 +9,7 @@ struct node{
    struct node * next;
 };
 
-//insert link at the end of the list
-void push(pthread_t data);
 
-//delete first item
-pthread_t pop();
-
-
-//is list empty
-bool isEmpty();
+void push(pthread_t data); //insert link at the end of the list
+pthread_t pop(); //delete first item
+bool isEmpty(); //is list empty
