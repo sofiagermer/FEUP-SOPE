@@ -3,6 +3,7 @@
 #include "utils.h"
 #include <fcntl.h>
 #include <stdbool.h>
+#include <errno.h>
 #include <sys/stat.h>
 
 
