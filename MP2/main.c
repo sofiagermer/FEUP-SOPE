@@ -5,7 +5,6 @@
 
 //GLOBAL VARS
 info_t info; //Info from args
-pthread_mutex_t lock; //Mutex to enter public fifo
 bool serverFlag; //Server closed
 bool timeFlag; //Time is up
 extern int publicFifoDesc; //Descriptor of the public named pipe
@@ -95,20 +94,10 @@ int main(int argc, const char* argv[]) {
     //createFifo(info.fifoname); WE ASSUMED SERVER SECURES THE CREATION OF PUBLIC FIFO
     publicFifoDesc = open(info.fifoname,O_WRONLY );
     
-    //Create mutex
-    if (pthread_mutex_init(&lock, NULL) != 0) {
-        fprintf(stderr,"Mutex init has failed: %s\n", strerror(errno));
-        return 1;
-    }
 
     //Create Requests and Threads and wait for answer
     handleRequests();
 
-    //Destroy mutex
-    if (pthread_mutex_destroy(&lock) != 0) {
-        fprintf(stderr,"Mutex init has failed: %s\n",strerror(errno));
-        return 1;
-    }
 
     close(publicFifoDesc);
     free(info.fifoname);
