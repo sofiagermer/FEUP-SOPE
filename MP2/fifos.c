@@ -24,6 +24,13 @@ void writeToPublicFifo(msg* message) {
     regist(message->i,message->t,message->pid,message->tid,message->res,"IWANT"); 
 }
 
+void openPublicFifo(char* fifoName) {
+    
+    time_t startTime = time(NULL);
+
+    while ((publicFifoDesc = open(fifoName,O_WRONLY)) != 0 && time(NULL) - startTime < 10); // Timeout
+}
+
 void readFromPrivateFifo(msg* message,char *privateFifoName) {
 
     int result;

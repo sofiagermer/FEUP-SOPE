@@ -87,7 +87,7 @@ int main(int argc, const char* argv[]) {
     parse(&info, argc, argv);
 
     //Open Fifo(info.fifoname);
-    publicFifoDesc = open(info.fifoname,O_WRONLY );
+    openPublicFifo(info.fifoname);
     
     //Create Requests and Threads and wait for answer
     handleRequests();
