@@ -12,17 +12,29 @@ void createFifo(char* name) {
     }
 }
 
-void writeToPublicFifo(msg* message) {
-
+int writeToPublicFifo(msg* message) {
+    
     //Writes to fifo
     if (write(publicFifoDesc,message,sizeof(msg)) < 0) {
         fprintf(stderr, "Failed to write to public fifo: %s\n", strerror(errno));
-        exit(1);
+        return 1;
     }
 
     //Logs
     regist(message->i,message->t,message->pid,message->tid,message->res,"IWANT"); 
 
+    return 0;
+}
+
+void openPublicFifo(char* fifoName) {
+    
+    time_t startTime = time(NULL);
+
+    while ((publicFifoDesc = open(fifoName, O_WRONLY | O_NONBLOCK)) < 0 && (time(NULL) - startTime < 10)); // Timeout
+    if (publicFifoDesc < 0) {
+        fprintf(stderr, "Failed to open public FIFO, timeout reached: %s\n", strerror(errno));
+        exit(1);
+    }
 }
 
 void readFromPrivateFifo(msg* message,char *privateFifoName) {
@@ -37,6 +49,7 @@ void readFromPrivateFifo(msg* message,char *privateFifoName) {
             exit(1);
         } else {
             regist(message->i,message->t,message->pid,message->tid,message->res,"GAVUP");
+            close(privateFifoDesc);
             return;
         }
     }
@@ -46,6 +59,7 @@ void readFromPrivateFifo(msg* message,char *privateFifoName) {
             exit(1);
         } else {
             regist(message->i,message->t,message->pid,message->tid,message->res,"GAVUP");
+            close(privateFifoDesc);
             return;
         }
     }

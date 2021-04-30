@@ -1,13 +1,15 @@
 #include <time.h>
 #include "fifos.h"
 #include "parser.h"
+#include "linkedlist.h"
 
 //GLOBAL VARS
 info_t info; //Info from args
-pthread_mutex_t lock; //Mutex to enter public fifo
 bool serverFlag; //Server closed
 bool timeFlag; //Time is up
 extern int publicFifoDesc; //Descriptor of the public named pipe
+extern struct node * head; //Linked list head
+extern struct node * tail; //Linked list tail
 
 //FUNCS
 void *threadHandler(void *i); //Handler for each request thread
@@ -17,7 +19,10 @@ void *threadHandler(void *i) {
 
     //Message struct
     msg* message = (msg*) malloc(sizeof(msg));
-    if(message == NULL) return NULL;
+    if(message==NULL){
+        fprintf(stderr,"Failed to allocate memory for message struct\n");
+        pthread_exit(NULL);
+    }
     createMessageStruct(message, *(int*) i);
 
     //Creates private fifo's name in format pid.tid
@@ -28,7 +33,10 @@ void *threadHandler(void *i) {
     createFifo(privateFifoName);
 
     //Sends the message
-    writeToPublicFifo(message);
+    if (writeToPublicFifo(message) != 0) { //In case it does not write, it shall not read
+        free(message);
+        pthread_exit(NULL);
+    }
 
     //Receives message
     readFromPrivateFifo(message,privateFifoName);
@@ -46,10 +54,7 @@ void handleRequests() {
 
     //Threads and stoping conds
     unsigned int identifier = 0;
-    pthread_attr_t threadsAttr;
-    pthread_attr_init(&threadsAttr);
-    pthread_attr_setdetachstate(&threadsAttr, PTHREAD_CREATE_DETACHED); //No need to wait for other threads
-
+    pthread_t id;
     serverFlag = true;
     timeFlag = true;
 
@@ -59,14 +64,14 @@ void handleRequests() {
         sec = end - start;
 
         identifier++;
-        pthread_t threadID;
 
         //Create thread for requests
-        if (pthread_create(&threadID,&threadsAttr,threadHandler,&identifier)) { 
+        if (pthread_create(&id,NULL,threadHandler,&identifier)) { 
             fprintf(stderr, "Failed to create thread: %s\n", strerror(errno));
             exit(1);
         }
-
+        //Adds id to a linked list
+        push(id);
         //To avoid race conditions
         randomWait(identifier);
     }
@@ -76,6 +81,13 @@ void handleRequests() {
     //Close Fifos
     timeFlag = false;
     forcePipesClosure(identifier);
+
+    //Wait for all threads to finish
+    while(!isEmpty()){
+        if (pthread_join(pop(), NULL) != 0) {
+            fprintf(stderr, "Error in pthread_join: %s\n", strerror(errno));
+        }
+    }
 }
 
 int main(int argc, const char* argv[]) {
@@ -84,12 +96,12 @@ int main(int argc, const char* argv[]) {
     parse(&info, argc, argv);
 
     //Open Fifo(info.fifoname);
-    publicFifoDesc = open(info.fifoname,O_WRONLY );
-
+    openPublicFifo(info.fifoname);
+    
     //Create Requests and Threads and wait for answer
     handleRequests();
 
-    //Close Public Fifo
+    //Close fifo
     close(publicFifoDesc);
     free(info.fifoname);
 
