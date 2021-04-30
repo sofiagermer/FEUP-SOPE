@@ -19,6 +19,10 @@ void *threadHandler(void *i) {
 
     //Message struct
     msg* message = (msg*) malloc(sizeof(msg));
+    if(message==NULL){
+        fprintf(stderr,"Failed to allocate memory for message struct\n");
+        pthread_exit(NULL);
+    }
     createMessageStruct(message, *(int*) i);
 
     //Creates private fifo's name in format pid.tid

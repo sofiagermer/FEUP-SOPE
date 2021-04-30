@@ -5,8 +5,11 @@ struct node * tail = NULL;
 
 void push(pthread_t data) {
     struct node * node=(struct node*)malloc(sizeof(struct node));
-    node->value = data;
-    node->next=NULL;
+    if(node!=NULL){
+        node->value = data;
+        node->next=NULL;
+    }
+    
     if (head == NULL) {
         head = node;
         tail = head;
