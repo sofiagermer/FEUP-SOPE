@@ -29,7 +29,10 @@ void *threadHandler(void *i) {
     createFifo(privateFifoName);
 
     //Sends the message
-    writeToPublicFifo(message);
+    if (writeToPublicFifo(message) != 0) { //In case it does not write, it shall not read
+        free(message);
+        pthread_exit(NULL);
+    }
 
     //Receives message
     readFromPrivateFifo(message,privateFifoName);
