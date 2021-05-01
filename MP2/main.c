@@ -75,9 +75,6 @@ void handleRequests() {
         //To avoid race conditions
         randomWait(identifier);
     }
-
-    pthread_attr_destroy(&threadsAttr);
-
     //Close Fifos
     timeFlag = false;
     forcePipesClosure(identifier);
@@ -105,5 +102,5 @@ int main(int argc, const char* argv[]) {
     close(publicFifoDesc);
     free(info.fifoname);
 
-    pthread_exit(NULL);
+    return 0;
 }
