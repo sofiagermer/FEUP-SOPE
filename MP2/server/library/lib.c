@@ -19,4 +19,5 @@ int task(int level) {
     int n = c;
     pthread_mutex_unlock(&lock);
 	return n;
+	
 }
