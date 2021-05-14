@@ -10,9 +10,9 @@ void* consumerHandler(void* a) {
 }
 
 void* threadHandler(void* a) {
-    
-    //task()
-
+    msg* message=(msg*)a;
+    task(message->t);
+    //message->
 }
 
 
