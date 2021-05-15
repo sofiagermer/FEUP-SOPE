@@ -1,9 +1,7 @@
 
 #include "buffer.h"
 
-int back;
-int maxSize;
-msg **queue;
+
 
 void initializeBuffer(int size){
     maxSize=size;
@@ -17,29 +15,28 @@ void initializeBuffer(int size){
     back=-1;
 }
 
-bool push(msg* message){
-    //falta verificar se esta cheia antes de dar push
-    if (isFull) return false;
-    if(isEmpty) back=0;
+bool addToBuffer(msg* message){
+    if (bufferFull()) return false;
+    if(bufferEmpty()) back=0;
     queue[back]=message;
     back++;
     return true;
 }
 
-bool isEmpty(){
+bool bufferEmpty(){
     if(back==-1) return true;
     return false;
 }
 
-bool isFull(){
+bool bufferFull(){
     if(back+1==maxSize) return true;
     return false;
 }
 
-bool pop(msg* message){
-    if(isEmpty) return false;
-    message=queue[back];
+msg* removeFromBuffer(){
+    if(bufferEmpty()) return NULL;
     back--;
+    return queue[back+1];
 }
 
 

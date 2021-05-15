@@ -4,4 +4,3 @@
 #include <stdio.h>
 
 void createFifo(char* name);
-void readPublicFifo(char *name);
