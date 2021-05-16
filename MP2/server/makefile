@@ -3,8 +3,8 @@ CC = gcc
 LIBS = -lm -lpthread -lrt
 CFLAGS = -Wall 
 
-s: main.o parser.o utils.o linkedlist.o buffer.o threads.o lib.o fifos.o
-	$(CC) $(CFLAGS) -o s main.o parser.o utils.o linkedlist.o buffer.o threads.o lib.o $(LIBS)
+s: main.o parser.o utils.o linkedlist.o buffer.o threads.o lib.o fifos.o delay.o
+	$(CC) $(CFLAGS) -o s main.o parser.o utils.o linkedlist.o buffer.o threads.o lib.o fifos.o delay.o $(LIBS)
 
 parser.o: parser.c parser.h
 	$(CC) $(CFLAGS) -c parser.c $(LIBS)
@@ -25,7 +25,10 @@ fifos.o: fifos.c fifos.h
 	$(CC) $(CFLAGS) -c fifos.c $(LIBS)
 
 lib.o: ./library/lib.c ./library/lib.h ./library/delay.h
-	gcc -Wall -c -o lib.o ./library/lib.c
+	$(CC) $(CFLAGS) -c ./library/lib.c $(LIBS)
+
+delay.o: ./library/delay.c ./library/delay.h
+	$(CC) $(CFLAGS) -c ./library/delay.c $(LIBS)
 
 clean:
 	rm *.o s

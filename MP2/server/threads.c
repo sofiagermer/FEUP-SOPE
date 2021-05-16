@@ -18,6 +18,7 @@ void* consumerHandler(void* a) {
 
 void* producerHandler(void* a) {
     msg* message=(msg*)a;
+    
     while(bufferFull()){
         sem_wait(&semC);
     }
@@ -42,19 +43,22 @@ void createThreads() {
         exit(1);
     }
     push(id);
-    int publicFifoDesc;
     while ((publicFifoDesc = open(info.fifoname, O_RDONLY|O_NONBLOCK) < 0)); // Timeout
     if (publicFifoDesc < 0) {
         fprintf(stderr, "Server: Error in %s:%s - (timeout reached)\n",__func__, strerror(errno));
         exit(1);
     }
     time(&now);
-    while((int) (now - start) > info.nsecs) {
+    while((int) (now - start) < info.nsecs) {
+        
         msg* message = (msg*) malloc(sizeof(msg));
+        printf("im here\n");
+
         if (read(publicFifoDesc, message, sizeof(msg)) != 0) {
             fprintf(stderr, "Server: Error in %s:%s\n", __func__, strerror(errno));
             exit(1);
         }
+        
         if (pthread_create(&id, NULL, producerHandler, message) != 0) {
             fprintf(stderr, "Server: Error in %s:%s\n", __func__, strerror(errno));
             exit(1);
