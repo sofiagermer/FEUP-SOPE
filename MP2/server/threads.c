@@ -18,15 +18,16 @@ void* consumerHandler(void* a) {
     sem_post(&semP);
     char privateFifoName[200];
     snprintf(privateFifoName, sizeof(privateFifoName), "/tmp/%d.%ld", message->pid, message->tid);
-    message->pid=getpid();
-    message->tid=pthread_self();
+    
     int privateFifoDesc;
 
     if ((privateFifoDesc = open(privateFifoName, O_RDONLY)) < 0) {
         fprintf(stderr, "Failed to open private FIFO: %s\n", strerror(errno));
         exit(1);
     }
-
+    message->pid=getpid();
+    message->tid=pthread_self();
+    
     if (write(privateFifoDesc,message,sizeof(msg)) < 0) {
         fprintf(stderr, "Failed to write to private fifo: %s\n", strerror(errno));
         exit(1);
@@ -72,14 +73,15 @@ void createThreads() {
     // Consumer thread
     pthread_t id;
     if (pthread_create(&id, NULL, consumerHandler, NULL) != 0) {
-        fprintf(stderr, "Server: Error in %s:%s\n", __func__, strerror(errno));
+        fprintf(stderr, "Error creating thread: %s\n", strerror(errno));
         exit(1);
     }
     push(id);
 
+    
     while ((publicFifoDesc = open(info.fifoname, O_RDONLY)) < 0); 
     if (publicFifoDesc < 0) {
-        fprintf(stderr, "Server: Error in %s:%s - (timeout reached)\n",__func__, strerror(errno));
+        fprintf(stderr, "Error opening public fifo: %s - (timeout reached)\n", strerror(errno));
         exit(1);
     }
     time(&now);
@@ -90,13 +92,12 @@ void createThreads() {
         
         message = (msg*) malloc(sizeof(msg));
         
-        if (read(publicFifoDesc, message, sizeof(msg)) != 0) {
-            fprintf(stderr, "Server: Error in %s:%s\n", __func__, strerror(errno));
+        if (read(publicFifoDesc, message, sizeof(msg)) == -1) {
+            fprintf(stderr, "Error reading from public fifo: %s\n", strerror(errno));
             exit(1);
         }
-        
         if (pthread_create(&id, NULL, producerHandler, message)) {
-            fprintf(stderr, "Server: Error in %s:%s\n", __func__, strerror(errno));
+            fprintf(stderr, "Error creating thread:%s\n", strerror(errno));
             exit(1);
         }
         push(id);
