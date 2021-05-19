@@ -16,18 +16,32 @@ void* consumerHandler(void* a) {
     sem_wait(&semC);
     message=buffer[0];
     sem_post(&semP);
-    
-    regist(message->i,message->t,getpid(),pthread_self(),message->res,"TSKDN");
+    char privateFifoName[200];
+    snprintf(privateFifoName, sizeof(privateFifoName), "/tmp/%d.%ld", message->pid, message->tid);
+    message->pid=getpid();
+    message->tid=pthread_self();
+    int privateFifoDesc;
+
+    if ((privateFifoDesc = open(privateFifoName, O_RDONLY)) < 0) {
+        fprintf(stderr, "Failed to open private FIFO: %s\n", strerror(errno));
+        exit(1);
+    }
+
+    if (write(privateFifoDesc,message,sizeof(msg)) < 0) {
+        fprintf(stderr, "Failed to write to private fifo: %s\n", strerror(errno));
+        exit(1);
+    }
+
+    regist(message->i,message->t,message->pid,message->tid,message->res,"TSKDN");
     pthread_exit(NULL);
 }
 
 void* producerHandler(void* a) {
     msg* message=(msg*)a;
-
     // Semaphore to wait when buffer is full
     sem_wait(&semP);
     message->res=task(message->t);
-    regist(message->i,message->t,getpid(),pthread_self(),message->res,"TSKEX");
+    regist(message->i,message->t,message->pid,message->tid,message->res,"TSKEX");
 
     // Mutex to access buffer index variable
     pthread_mutex_lock(&indexMutex);
@@ -46,7 +60,7 @@ void* producerHandler(void* a) {
 void createThreads() {
 
     // Allocation of the buffer
-    buffer = (msg*) malloc(info.buffersize * sizeof(msg));
+    buffer = (msg**) malloc(info.buffersize * sizeof(msg));
     bufferIndex = 0;
 
     // Time, semaphores and mutex
@@ -63,24 +77,25 @@ void createThreads() {
     }
     push(id);
 
-    while ((publicFifoDesc = open(info.fifoname, O_RDONLY|O_NONBLOCK) < 0)); // Timeout
+    while ((publicFifoDesc = open(info.fifoname, O_RDONLY)) < 0); 
     if (publicFifoDesc < 0) {
         fprintf(stderr, "Server: Error in %s:%s - (timeout reached)\n",__func__, strerror(errno));
         exit(1);
     }
     time(&now);
 
+    msg* message;
     // Producer threads (read message and create thread)
     while((int) (now - start) < info.nsecs) {
         
-        msg* message = (msg*) malloc(sizeof(msg));
-
+        message = (msg*) malloc(sizeof(msg));
+        
         if (read(publicFifoDesc, message, sizeof(msg)) != 0) {
             fprintf(stderr, "Server: Error in %s:%s\n", __func__, strerror(errno));
             exit(1);
         }
         
-        if (pthread_create(&id, NULL, producerHandler, message) != 0) {
+        if (pthread_create(&id, NULL, producerHandler, message)) {
             fprintf(stderr, "Server: Error in %s:%s\n", __func__, strerror(errno));
             exit(1);
         }
@@ -88,6 +103,11 @@ void createThreads() {
         time(&now);
     }
 
+    if (read(publicFifoDesc, message, sizeof(msg)) != 0) {
+        fprintf(stderr, "Server: Error in %s:%s\n", __func__, strerror(errno));
+        exit(1);
+    }
+    regist(message->i,message->t,message->pid,message->tid,message->res,"2LATE");
     // Wait for all threads to finish
     while(!isEmpty()){
         if (pthread_join(pop(), NULL) != 0) {
