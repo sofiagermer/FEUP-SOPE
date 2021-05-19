@@ -1,9 +1,7 @@
+#include <errno.h>
 #include "threads.h"
 
-extern info_t info;
-extern int errno;
 
-int publicFifoDesc; 
 sem_t semP, semC;
 
 void* consumerHandler(void* a) {
@@ -30,8 +28,9 @@ void* producerHandler(void* a) {
 }
 
 
-void createThreads() {
+void createThreads(info_t info) {
 
+    int publicFifoDesc; 
     time_t start, now;
     time(&start);
     sem_init(&semP, 0, 0);
@@ -52,7 +51,6 @@ void createThreads() {
     while((int) (now - start) < info.nsecs) {
         
         msg* message = (msg*) malloc(sizeof(msg));
-        printf("im here\n");
 
         if (read(publicFifoDesc, message, sizeof(msg)) != 0) {
             fprintf(stderr, "Server: Error in %s:%s\n", __func__, strerror(errno));

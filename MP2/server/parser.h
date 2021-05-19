@@ -10,4 +10,4 @@
 #include "utils.h"
 
 int is_positive_integer(const char * num);
-void parse(info_t * info, int argc, char const * argv[]);
+void parse(info_t * info, int argc, char * argv[]);

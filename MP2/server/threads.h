@@ -15,4 +15,4 @@
 
 void* consumerHandler(void* a);
 void* producerHandler(void* a);
-void createThreads();
+void createThreads(info_t info);

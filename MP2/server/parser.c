@@ -10,22 +10,19 @@ int is_positive_integer(const char * num) {
     return 1;
 }
 
-void parse(info_t * info, int argc, char const * argv[]) {
-    const int VALID_ARGC = 6;
+void parse(info_t * info, int argc, char * argv[]) {
 
-    //Check valid arguments number
-    if (argc > VALID_ARGC) {
-        printf("s: error: too many arguments\n");
-        exit(1);
-    }
-    if (argc < VALID_ARGC) {
+    if(argc < 5){
         printf("s: error: too few arguments\n");
         exit(1);
     }
-
-    int nsecs = 0;
-
-    //Retrieving arguments
+    else if(argc > 6){
+        printf("s: error: too many arguments\n");
+        exit(1);
+    }
+    info->nsecs = -1;
+    info->buffersize = 10;
+    info->fifoname = NULL;
     for (unsigned i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-t") == 0) { //Time
             if ( i == argc - 1 || (i != argc - 1 && !is_positive_integer(argv[i+1])) ) 
@@ -33,9 +30,9 @@ void parse(info_t * info, int argc, char const * argv[]) {
                 printf("s: error: missing time value after -t\n"); 
                 exit(1);
             }
-            nsecs = atoi(argv[i+1]);
+            info->nsecs = atoi(argv[i+1]);
             i++;
-        }else if (strcmp(argv[i], "-l") == 0){ //buffer size
+        }else if(strcmp(argv[i], "-l") == 0){ //buffer size
             if ( i == argc - 1 || (i != argc - 1 && !is_positive_integer(argv[i+1])) ) 
             {
                 printf("s: error: missing time value after -l\n"); 
@@ -44,12 +41,21 @@ void parse(info_t * info, int argc, char const * argv[]) {
             info->buffersize = atoi(argv[i+1]);
             i++;
         }
-        else {//Fifopath
-            info->fifoname = (char*) malloc(strlen(argv[i])+1);  
-            size_t size=strlen(argv[i])+1;
-            snprintf(info->fifoname,size,"%s",argv[i]);
+        else { //Fifopath
+            if(info->fifoname != NULL){
+                printf("s: error: arguments aren't correct\n"); 
+                exit(1);
+            }
+            info->fifoname = argv[i];
         }
     }
-    //Struct
-    info->nsecs = nsecs;
+    if(info->nsecs == -1){
+        printf("s: error: missing option -t \n"); 
+        exit(1);
+    }
+    if(info->fifoname == NULL){
+        printf("s: error: missing fifoname \n"); 
+        exit(1);
+    }
+
 }
