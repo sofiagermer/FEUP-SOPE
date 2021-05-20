@@ -52,7 +52,7 @@ void* consumerHandler(void* a) {
             fprintf(stderr, "Server: Failed to write to private fifo in %s: %s\n", __func__, strerror(errno));
             exit(1);
         }
-
+        close(privateFifoDesc);
         // Register answer
         if (message.res != -1) regist(message.i,message.t,getpid(),pthread_self(),message.res,"TSKDN");
         else regist(message.i,message.t,getpid(),pthread_self(),message.res,"2LATE");
