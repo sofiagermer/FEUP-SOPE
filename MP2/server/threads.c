@@ -26,7 +26,6 @@ void* consumerHandler(void* a) {
         
         // Semaphore to wait when buffer is empty
         sem_wait(&semC);
-        printf("GOT IN\n");
         msg message = buffer[index];
         index++;
         index = index % info.buffersize;
@@ -45,12 +44,11 @@ void* consumerHandler(void* a) {
         // Write answer
         if((privateFifoDesc = open(privateFifoName, O_WRONLY | O_NONBLOCK)) < 0) {
             regist(message.i,message.t,getpid(),pthread_self(),message.res,"FAILD");
-            timeout = true;
-            pthread_exit(NULL);
+            timeout=true;
+            continue;
         }
         if (write(privateFifoDesc,&message,sizeof(msg)) == -1) {
             fprintf(stderr, "Server: Failed to write to private fifo in %s: %s\n", __func__, strerror(errno));
-            exit(1);
         }
         close(privateFifoDesc);
         // Register answer
@@ -114,12 +112,12 @@ void createThreads() {
     push(id);
 
     // Producer threads (read message and create thread)
-    while((time(NULL) - start) < info.nsecs && !timeout) {
+    while((time(NULL) - start) < info.nsecs ) {
         
         message = (msg*) malloc(sizeof(msg));
         int result;
         
-        while((result = read(publicFifoDesc, message, sizeof(msg))) <= 0 && (int) time(NULL) - start < info.nsecs && !timeout);
+        while((result = read(publicFifoDesc, message, sizeof(msg))) <= 0 && (int) time(NULL) - start < info.nsecs);
         if (result <= 0) { // Timeout reached
             free(message);
             break;
@@ -140,9 +138,14 @@ void createThreads() {
         }
         push(id);
     }
-
+    close(publicFifoDesc);
+    if (unlink(info.fifoname) != 0) {
+        fprintf(stderr, "Server: Error in unlink in %s: %s\n", __func__, strerror(errno));
+        exit(1);
+    }
     timeout = true; // Time of program is over
     
+
     // Wait for all threads to finish
     while(!isEmpty()) {
         if (pthread_join(pop(), NULL) != 0) {

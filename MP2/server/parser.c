@@ -12,7 +12,7 @@ int is_positive_integer(const char * num) {
 
 void parse(info_t * info, int argc, char * argv[]) {
 
-    if(argc < 5){
+    if(argc < 4){
         printf("s: error: too few arguments\n");
         exit(1);
     } else if(argc > 6) {

@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
     parse(&info,argc, argv);
     
     //Creates public fifo
-    if(mkfifo(info.fifoname, 0666) == -1) {
+    if(mkfifo(info.fifoname, 0666) == -1 && errno != EEXIST) {
         fprintf(stderr,"Failed to create FIFO: %s\n", strerror(errno));
         exit(1);
     }
@@ -24,10 +24,6 @@ int main(int argc, char* argv[]) {
 
     createThreads();
 
-    close(publicFifoDesc);
-    if (unlink(info.fifoname) != 0) {
-        fprintf(stderr, "Server: Error in unlink in %s: %s\n", __func__, strerror(errno));
-        exit(1);
-    }
+    
     return 0;
 }
