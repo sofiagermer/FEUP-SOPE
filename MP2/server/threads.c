@@ -141,6 +141,7 @@ void createThreads() {
         fprintf(stderr, "Server: Error in unlink in %s: %s\n", __func__, strerror(errno));
         exit(1);
     }
+    printf("tou aqui\n");
     timeout = true; // Time of program is over
     
 
