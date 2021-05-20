@@ -7,18 +7,17 @@ extern int publicFifoDesc;
 sem_t semP, semC; // Semaphores for consumer and producer threads to access the buffer
 pthread_mutex_t indexMutex = PTHREAD_MUTEX_INITIALIZER; // Mutex for the index of the buffer
 pthread_mutex_t requestsLock = PTHREAD_MUTEX_INITIALIZER; // Mutex for number of requests left
-msg** buffer;
+msg* buffer;
 int bufferIndex, requestsAvailable;
 bool timeout, ready;
 
 
 void* consumerHandler(void* a) {
 
+    // Timeout before even opening
     while (!ready) {
         if (timeout) pthread_exit(NULL);
     }
-
-    msg* message;
     int index = 0; 
 
     while (!timeout || requestsAvailable > 0) {  
@@ -28,11 +27,12 @@ void* consumerHandler(void* a) {
         // Semaphore to wait when buffer is empty
         sem_wait(&semC);
         printf("GOT IN\n");
-        message = buffer[index];
+        msg message = buffer[index];
         index++;
         index = index % info.buffersize;
         sem_post(&semP);
 
+        // Decrease number of active requests
         pthread_mutex_lock(&requestsLock);
         requestsAvailable--;
         pthread_mutex_unlock(&requestsLock);
@@ -40,24 +40,22 @@ void* consumerHandler(void* a) {
         // Fabricate message
         char privateFifoName[200];
         int privateFifoDesc;
-        snprintf(privateFifoName, sizeof(privateFifoName), "/tmp/%d.%ld", message->pid, message->tid);
+        snprintf(privateFifoName, sizeof(privateFifoName), "/tmp/%d.%ld", message.pid, message.tid);
 
         // Write answer
         if((privateFifoDesc = open(privateFifoName, O_WRONLY | O_NONBLOCK)) < 0) {
-            regist(message->i,message->t,getpid(),pthread_self(),message->res,"FAILD");
-            free(message);
+            regist(message.i,message.t,getpid(),pthread_self(),message.res,"FAILD");
             timeout = true;
             pthread_exit(NULL);
         }
-        if (write(privateFifoDesc,message,sizeof(msg)) == -1) {
+        if (write(privateFifoDesc,&message,sizeof(msg)) == -1) {
             fprintf(stderr, "Server: Failed to write to private fifo in %s: %s\n", __func__, strerror(errno));
             exit(1);
         }
 
         // Register answer
-        if (message->res != -1) regist(message->i,message->t,getpid(),pthread_self(),message->res,"TSKDN");
-        else regist(message->i,message->t,getpid(),pthread_self(),message->res,"2LATE");
-        free(message);
+        if (message.res != -1) regist(message.i,message.t,getpid(),pthread_self(),message.res,"TSKDN");
+        else regist(message.i,message.t,getpid(),pthread_self(),message.res,"2LATE");
     }
     pthread_exit(NULL);
 }
@@ -82,7 +80,8 @@ void* producerHandler(void* a) {
     pthread_mutex_unlock(&indexMutex);
     
     // Write message to buffer
-    buffer[localIndex] = message;
+    buffer[localIndex] = *message;
+    free(message);
     sem_post(&semC);
     pthread_exit(NULL);
 }
@@ -98,7 +97,7 @@ void createThreads() {
 
     // Allocation of the buffer
     pthread_t id;
-    buffer = (msg**) malloc(info.buffersize * sizeof(msg*));
+    buffer = (msg*) malloc(info.buffersize * sizeof(msg));
     bufferIndex = 0;
 
     // Time, semaphores and mutex
@@ -129,10 +128,12 @@ void createThreads() {
 
         regist(message->i, message->t, getpid(), pthread_self(), message->res, "RECVD");
 
+        // Increase number of active requests
         pthread_mutex_lock(&requestsLock);
         requestsAvailable++;
         pthread_mutex_unlock(&requestsLock);
 
+        // Create threads for requests
         if (pthread_create(&id, NULL, producerHandler, message)) {
             fprintf(stderr, "Server: Error creating thread in %s: %s\n", __func__, strerror(errno));
             exit(1);
@@ -149,9 +150,6 @@ void createThreads() {
             exit(1);
         }
     }
-
-    for (unsigned int i = 0; i < info.buffersize; i++) 
-        free(buffer[i]);
 
     // Destroy
     pthread_mutex_destroy(&indexMutex);

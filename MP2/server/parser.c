@@ -15,8 +15,7 @@ void parse(info_t * info, int argc, char * argv[]) {
     if(argc < 5){
         printf("s: error: too few arguments\n");
         exit(1);
-    }
-    else if(argc > 6){
+    } else if(argc > 6) {
         printf("s: error: too many arguments\n");
         exit(1);
     }
@@ -38,8 +37,7 @@ void parse(info_t * info, int argc, char * argv[]) {
             }
             info->buffersize = atoi(argv[i+1]);
             i++;
-        }
-        else { //Fifopath
+        } else { //Fifopath
             if(info->fifoname != NULL) {
                 printf("s: error: arguments aren't correct\n"); 
                 exit(1);
