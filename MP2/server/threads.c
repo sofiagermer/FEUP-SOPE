@@ -110,6 +110,8 @@ void createThreads() {
     }
     push(id);
 
+    int no = 0;
+
     // Producer threads (read message and create thread)
     while((time(NULL) - start) < info.nsecs) {
         
@@ -130,7 +132,9 @@ void createThreads() {
             exit(1);
         }
         push(id);
+        no++;
     }
+    printf("No:%d\n", no);
 
     timeout = true; // Time of program is over
     
@@ -143,6 +147,7 @@ void createThreads() {
             exit(1);
         }
     }
+    printf("GOT HERE\n");
 
     sem_destroy(&semC);
     sem_destroy(&semP);
