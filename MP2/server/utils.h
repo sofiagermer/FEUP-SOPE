@@ -22,4 +22,3 @@ typedef struct {
 } info_t;
 
 void regist(int i,int t, pid_t pid, pthread_t tid, int res,char* oper); //Log files
-void randomWait(unsigned int i); //Avoid race conditions

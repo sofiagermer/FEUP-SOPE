@@ -6,9 +6,11 @@ extern int publicFifoDesc;
 
 sem_t semP, semC; // Semaphores for consumer and producer threads to access the buffer
 pthread_mutex_t indexMutex = PTHREAD_MUTEX_INITIALIZER; // Mutex for the index of the buffer
+pthread_mutex_t requestsLock = PTHREAD_MUTEX_INITIALIZER; // Mutex for number of requests left
 msg** buffer;
-int bufferIndex;
+int bufferIndex, requestsAvailable;
 bool timeout, ready;
+
 
 void* consumerHandler(void* a) {
 
@@ -17,24 +19,23 @@ void* consumerHandler(void* a) {
     }
 
     msg* message;
-    int index = 0;
-    int result;
+    int index = 0; 
 
-    while (true) {    
+    while (!timeout || requestsAvailable > 0) {  
 
-        // Conditions to end the loop
-        if (sem_getvalue(&semC, &result) != 0) {
-            fprintf(stderr, "Server: Error reading semaphore value in %s: %s\n", __func__, strerror(errno));
-            exit(1);
-        }
-        if (result == 0 && timeout) break;
+        printf("Available: %d\n", requestsAvailable);
         
         // Semaphore to wait when buffer is empty
         sem_wait(&semC);
+        printf("GOT IN\n");
         message = buffer[index];
         index++;
         index = index % info.buffersize;
         sem_post(&semP);
+
+        pthread_mutex_lock(&requestsLock);
+        requestsAvailable--;
+        pthread_mutex_unlock(&requestsLock);
 
         // Fabricate message
         char privateFifoName[200];
@@ -44,6 +45,8 @@ void* consumerHandler(void* a) {
         // Write answer
         if((privateFifoDesc = open(privateFifoName, O_WRONLY | O_NONBLOCK)) < 0) {
             regist(message->i,message->t,getpid(),pthread_self(),message->res,"FAILD");
+            free(message);
+            timeout = true;
             pthread_exit(NULL);
         }
         if (write(privateFifoDesc,message,sizeof(msg)) == -1) {
@@ -54,6 +57,7 @@ void* consumerHandler(void* a) {
         // Register answer
         if (message->res != -1) regist(message->i,message->t,getpid(),pthread_self(),message->res,"TSKDN");
         else regist(message->i,message->t,getpid(),pthread_self(),message->res,"2LATE");
+        free(message);
     }
     pthread_exit(NULL);
 }
@@ -80,7 +84,6 @@ void* producerHandler(void* a) {
     // Write message to buffer
     buffer[localIndex] = message;
     sem_post(&semC);
-    free(message);
     pthread_exit(NULL);
 }
 
@@ -91,6 +94,7 @@ void createThreads() {
     ready = false;
     msg* message;
     bufferIndex = 0;
+    requestsAvailable = 0;
 
     // Allocation of the buffer
     pthread_t id;
@@ -110,16 +114,14 @@ void createThreads() {
     }
     push(id);
 
-    int no = 0;
-
     // Producer threads (read message and create thread)
-    while((time(NULL) - start) < info.nsecs) {
+    while((time(NULL) - start) < info.nsecs && !timeout) {
         
         message = (msg*) malloc(sizeof(msg));
         int result;
         
-        while((result = read(publicFifoDesc, message, sizeof(msg))) <= 0 && (int) time(NULL) - start < info.nsecs);
-        if (result == 0) { // Timeout reached
+        while((result = read(publicFifoDesc, message, sizeof(msg))) <= 0 && (int) time(NULL) - start < info.nsecs && !timeout);
+        if (result <= 0) { // Timeout reached
             free(message);
             break;
         }
@@ -127,28 +129,33 @@ void createThreads() {
 
         regist(message->i, message->t, getpid(), pthread_self(), message->res, "RECVD");
 
+        pthread_mutex_lock(&requestsLock);
+        requestsAvailable++;
+        pthread_mutex_unlock(&requestsLock);
+
         if (pthread_create(&id, NULL, producerHandler, message)) {
             fprintf(stderr, "Server: Error creating thread in %s: %s\n", __func__, strerror(errno));
             exit(1);
         }
         push(id);
-        no++;
     }
-    printf("No:%d\n", no);
 
     timeout = true; // Time of program is over
     
     // Wait for all threads to finish
-    while(!isEmpty()){
-        pthread_t t = pop();
-        printf("Thread:%ld\n", t);
-        if (pthread_join(t, NULL) != 0) {
+    while(!isEmpty()) {
+        if (pthread_join(pop(), NULL) != 0) {
             fprintf(stderr, "Server: Error in pthread_join in %s:%s\n", __func__, strerror(errno));
             exit(1);
         }
     }
-    printf("GOT HERE\n");
 
+    for (unsigned int i = 0; i < info.buffersize; i++) 
+        free(buffer[i]);
+
+    // Destroy
+    pthread_mutex_destroy(&indexMutex);
+    pthread_mutex_destroy(&requestsLock);
     sem_destroy(&semC);
     sem_destroy(&semP);
     free(buffer);

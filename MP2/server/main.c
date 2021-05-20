@@ -4,6 +4,7 @@
 
 info_t info;
 int publicFifoDesc;
+extern int errno;
 
 int main(int argc, char* argv[]) {
     
@@ -24,5 +25,9 @@ int main(int argc, char* argv[]) {
     createThreads();
 
     close(publicFifoDesc);
+    if (unlink(info.fifoname) != 0) {
+        fprintf(stderr, "Server: Error in unlink in %s: %s\n", __func__, strerror(errno));
+        exit(1);
+    }
     return 0;
 }
