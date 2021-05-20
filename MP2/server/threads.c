@@ -21,8 +21,6 @@ void* consumerHandler(void* a) {
     int index = 0; 
 
     while (!timeout || requestsAvailable > 0) {  
-
-        printf("Available: %d\n", requestsAvailable);
         
         // Semaphore to wait when buffer is empty
         sem_wait(&semC);
