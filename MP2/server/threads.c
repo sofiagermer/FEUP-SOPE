@@ -8,29 +8,41 @@ sem_t semP, semC; // Semaphores for consumer and producer threads to access the 
 pthread_mutex_t indexMutex = PTHREAD_MUTEX_INITIALIZER; // Mutex for the index of the buffer
 msg** buffer;
 int bufferIndex;
-bool timeout;
+bool timeout, ready;
 
 void* consumerHandler(void* a) {
+
     msg* message;
+    while (!ready) {
+        if (timeout) pthread_exit(NULL);
+    }
 
     int index = 0;
     while (true) {    
-        printf("STUCK\n");
+
+        int result;
 
         // Conditions to end the loop
-        int result;
         if (sem_getvalue(&semC, &result) != 0) {
             fprintf(stderr, "Server: Error reading semaphore value in %s: %s\n", __func__, strerror(errno));
             exit(1);
         }
-        if (result == 0 && timeout) break;
+        if (result == 0 && timeout) {
+            printf("UPS\n");
+            break;
+        } 
 
         // Semaphore to wait when buffer is empty
+        printf("MAYBE STUCK?\n");
+        printf("Result:%d\n", result);
         sem_wait(&semC);
+        printf("YEP\n");
         message = buffer[index];
         index++;
         index = index % info.buffersize;
         sem_post(&semP);
+        printf("OR NOT\n");
+        printf("Result:%d\n", result);
 
         char privateFifoName[200];
         int privateFifoDesc;
@@ -39,20 +51,16 @@ void* consumerHandler(void* a) {
 
         if((privateFifoDesc = open(privateFifoName, O_WRONLY)) < 0) {
             regist(message->i,message->t,getpid(),pthread_self(),message->res,"FAILD");
-            fprintf(stderr, "Server: Failed to open private FIFO in %s: %s\n", __func__, strerror(errno));
-            printf("CONSUMER GONNA DIE NOW\n");
             pthread_exit(NULL);
         }
-
-        printf("GOT THERE\n");
-        
-        if (write(privateFifoDesc,message,sizeof(msg)) < 0) {
+        printf("BUGGED SHIT\n");
+        if (write(privateFifoDesc,message,sizeof(msg)) == -1) {
             fprintf(stderr, "Server: Failed to write to private fifo in %s: %s\n", __func__, strerror(errno));
             exit(1);
         }
-        regist(message->i,message->t,getpid(),pthread_self(),message->res,"TSKDN");
+        if (message->res != -1) regist(message->i,message->t,getpid(),pthread_self(),message->res,"TSKDN");
+        else regist(message->i,message->t,getpid(),pthread_self(),message->res,"2LATE");
     }
-    printf("CONSUMER GONNA DIE NOW\n");
     pthread_exit(NULL);
 }
 
@@ -60,8 +68,10 @@ void* producerHandler(void* a) {
     msg* message = (msg*) a;
 
     // Perform task
-    message->res = task(message->t);
-    regist(message->i,message->t,getpid(),pthread_self(),message->res,"TSKEX");
+    if (!timeout) {
+        message->res = task(message->t);
+        regist(message->i,message->t,getpid(),pthread_self(),message->res,"TSKEX");
+    }
 
     // Semaphore to wait when buffer is full
     sem_wait(&semP);
@@ -82,13 +92,13 @@ void* producerHandler(void* a) {
 
 void createThreads() {
 
-    printf("I am here\n");
-
     timeout = false;
+    ready = false;
     msg* message;
     bufferIndex = 0;
 
     // Allocation of the buffer
+    pthread_t id;
     buffer = (msg**) malloc(info.buffersize * sizeof(msg));
     bufferIndex = 0;
 
@@ -99,20 +109,12 @@ void createThreads() {
     sem_init(&semC, 0, 0);
 
     // Try opening public fifo
-    while ((publicFifoDesc = open(info.fifoname, O_RDONLY | O_NONBLOCK)) < 0 && (time(NULL) - start < info.nsecs)) {
-        printf("TRYING TO OPEN\n");
-    }
-    if (publicFifoDesc == -1) { // Timeout
-        fprintf(stderr, "Server: Error opening public fifo in %s:timeout reached\n", __func__);
-        sem_destroy(&semC);
-        sem_destroy(&semP);
-        free(buffer);
+    if ((publicFifoDesc = open(info.fifoname, O_RDONLY | O_NONBLOCK)) == -1) { 
+        fprintf(stderr, "Server: Error opening public fifo in %s: %s\n", __func__, strerror(errno));
         exit(1);
     }
-    printf("FILE DESCRIPTOR:%d\n", publicFifoDesc);
 
     // Consumer thread
-    pthread_t id;
     if (pthread_create(&id, NULL, consumerHandler, NULL) != 0) {
         fprintf(stderr, "Server: Error creating thread in %s: %s\n", __func__, strerror(errno));
         exit(1);
@@ -120,64 +122,41 @@ void createThreads() {
     push(id);
 
     // Producer threads (read message and create thread)
-    while((int) (time(NULL) - start) < info.nsecs) {
+    while((time(NULL) - start) < info.nsecs) {
         
         message = (msg*) malloc(sizeof(msg));
         int result;
         
-        while((result = read(publicFifoDesc, message, sizeof(msg))) < 0 && (int) time(NULL) - start < info.nsecs);
-        if (result == -1) {
-            fprintf(stderr, "Server: Error reading from public fifo in %s:%s\n", __func__, strerror(errno));
-            exit(1);
-        } else if (result == 0) { // Timeout reached
+        while((result = read(publicFifoDesc, message, sizeof(msg))) <= 0 && (int) time(NULL) - start < info.nsecs);
+        if (result == 0) { // Timeout reached
             free(message);
             break;
         }
+        ready = true; // To start the consumer thread
 
         regist(message->i, message->t, getpid(), pthread_self(), message->res, "RECVD");
 
         if (pthread_create(&id, NULL, producerHandler, message)) {
-            fprintf(stderr, "Server: Error creating thread in %s:%s\n", __func__, strerror(errno));
+            fprintf(stderr, "Server: Error creating thread in %s: %s\n", __func__, strerror(errno));
             exit(1);
         }
         push(id);
     }
 
-    timeout = true;
-    /* if (read(publicFifoDesc, message, sizeof(msg)) == -1) {
-        fprintf(stderr, "Server: Error in %s:%s\n", __func__, strerror(errno));
-        exit(1);
-    }
-
-    char privateFifoName[200];
-    snprintf(privateFifoName, sizeof(privateFifoName), "/tmp/%d.%ld", message->pid, message->tid);
+    timeout = true; // Time of program is over
     
-    int privateFifoDesc;
-
-    while((privateFifoDesc = open(privateFifoName, O_WRONLY)) < 0) {
-        //fprintf(stderr, "Failed to open private FIFO: %s\n", strerror(errno));
-    }
-    message->pid=getpid();
-    message->tid=pthread_self();
-    
-    if (write(privateFifoDesc,message,sizeof(msg)) < 0) {
-        fprintf(stderr, "Failed to write to private fifo: %s\n", strerror(errno));
-        exit(1);
-    }
-
-    regist(message->i,message->t,message->pid,message->tid,message->res,"2LATE"); */
-
     // Wait for all threads to finish
     while(!isEmpty()){
-        printf("One more\n");
-        if (pthread_join(pop(), NULL) != 0) {
+        pthread_t t = pop();
+        printf("Thread:%ld\n", t);
+        if (pthread_join(t, NULL) != 0) {
             fprintf(stderr, "Server: Error in pthread_join in %s:%s\n", __func__, strerror(errno));
+            exit(1);
         }
     }
 
     close(publicFifoDesc);
     sem_destroy(&semC);
     sem_destroy(&semP);
-
     free(buffer);
 }
