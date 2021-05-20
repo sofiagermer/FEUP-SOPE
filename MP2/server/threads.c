@@ -2,8 +2,8 @@
 
 extern info_t info;
 extern int errno;
+extern int publicFifoDesc; 
 
-int publicFifoDesc; 
 sem_t semP, semC; // Semaphores for consumer and producer threads to access the buffer
 pthread_mutex_t indexMutex = PTHREAD_MUTEX_INITIALIZER; // Mutex for the index of the buffer
 msg** buffer;
@@ -12,52 +12,46 @@ bool timeout, ready;
 
 void* consumerHandler(void* a) {
 
-    msg* message;
     while (!ready) {
         if (timeout) pthread_exit(NULL);
     }
 
+    msg* message;
     int index = 0;
-    while (true) {    
+    int result;
 
-        int result;
+    while (true) {    
 
         // Conditions to end the loop
         if (sem_getvalue(&semC, &result) != 0) {
             fprintf(stderr, "Server: Error reading semaphore value in %s: %s\n", __func__, strerror(errno));
             exit(1);
         }
-        if (result == 0 && timeout) {
-            printf("UPS\n");
-            break;
-        } 
-
+        if (result == 0 && timeout) break;
+        
         // Semaphore to wait when buffer is empty
-        printf("MAYBE STUCK?\n");
-        printf("Result:%d\n", result);
         sem_wait(&semC);
-        printf("YEP\n");
         message = buffer[index];
         index++;
         index = index % info.buffersize;
         sem_post(&semP);
-        printf("OR NOT\n");
-        printf("Result:%d\n", result);
 
+        // Fabricate message
         char privateFifoName[200];
         int privateFifoDesc;
-
         snprintf(privateFifoName, sizeof(privateFifoName), "/tmp/%d.%ld", message->pid, message->tid);
 
-        if((privateFifoDesc = open(privateFifoName, O_WRONLY)) < 0) {
+        // Write answer
+        if((privateFifoDesc = open(privateFifoName, O_WRONLY | O_NONBLOCK)) < 0) {
             regist(message->i,message->t,getpid(),pthread_self(),message->res,"FAILD");
             pthread_exit(NULL);
         }
-        printf("BUGGED SHIT\n");
         if (write(privateFifoDesc,message,sizeof(msg)) == -1) {
             fprintf(stderr, "Server: Failed to write to private fifo in %s: %s\n", __func__, strerror(errno));
             exit(1);
         }
+
+        // Register answer
         if (message->res != -1) regist(message->i,message->t,getpid(),pthread_self(),message->res,"TSKDN");
         else regist(message->i,message->t,getpid(),pthread_self(),message->res,"2LATE");
     }
@@ -86,6 +80,7 @@ void* producerHandler(void* a) {
     // Write message to buffer
     buffer[localIndex] = message;
     sem_post(&semC);
+    free(message);
     pthread_exit(NULL);
 }
 
@@ -99,7 +94,7 @@ void createThreads() {
 
     // Allocation of the buffer
     pthread_t id;
-    buffer = (msg**) malloc(info.buffersize * sizeof(msg));
+    buffer = (msg**) malloc(info.buffersize * sizeof(msg*));
     bufferIndex = 0;
 
     // Time, semaphores and mutex
@@ -107,12 +102,6 @@ void createThreads() {
     time(&start);
     sem_init(&semP, 0, info.buffersize);
     sem_init(&semC, 0, 0);
-
-    // Try opening public fifo
-    if ((publicFifoDesc = open(info.fifoname, O_RDONLY | O_NONBLOCK)) == -1) { 
-        fprintf(stderr, "Server: Error opening public fifo in %s: %s\n", __func__, strerror(errno));
-        exit(1);
-    }
 
     // Consumer thread
     if (pthread_create(&id, NULL, consumerHandler, NULL) != 0) {
@@ -155,7 +144,6 @@ void createThreads() {
         }
     }
 
-    close(publicFifoDesc);
     sem_destroy(&semC);
     sem_destroy(&semP);
     free(buffer);
