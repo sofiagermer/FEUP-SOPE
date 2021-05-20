@@ -8,32 +8,38 @@ sem_t semP, semC;
 pthread_mutex_t indexMutex = PTHREAD_MUTEX_INITIALIZER;
 msg** buffer;
 int bufferIndex;
+bool timeout;
 
 void* consumerHandler(void* a) {
     msg* message;
 
     // Semaphore to wait when buffer is empty
-    sem_wait(&semC);
-    message=buffer[0];
-    sem_post(&semP);
-    char privateFifoName[200];
-    snprintf(privateFifoName, sizeof(privateFifoName), "/tmp/%d.%ld", message->pid, message->tid);
-    
-    int privateFifoDesc;
+    int index=0;
+    while(!timeout){    
+        sem_wait(&semC);
+        printf("here\n");
+        message=buffer[index];
+        index++;
+        index=index%info.buffersize;
+        sem_post(&semP);
+        char privateFifoName[200];
+        snprintf(privateFifoName, sizeof(privateFifoName), "/tmp/%d.%ld", message->pid, message->tid);
+        
+        int privateFifoDesc;
 
-    if ((privateFifoDesc = open(privateFifoName, O_RDONLY)) < 0) {
-        fprintf(stderr, "Failed to open private FIFO: %s\n", strerror(errno));
-        exit(1);
+        while((privateFifoDesc = open(privateFifoName, O_WRONLY)) < 0) {
+            fprintf(stderr, "Failed to open private FIFO: %s\n", strerror(errno));
+            exit(1);
+        }
+        message->pid=getpid();
+        message->tid=pthread_self();
+        
+        if (write(privateFifoDesc,message,sizeof(msg)) < 0) {
+            fprintf(stderr, "Failed to write to private fifo: %s\n", strerror(errno));
+            exit(1);
+        }
+        regist(message->i,message->t,message->pid,message->tid,message->res,"TSKDN");
     }
-    message->pid=getpid();
-    message->tid=pthread_self();
-    
-    if (write(privateFifoDesc,message,sizeof(msg)) < 0) {
-        fprintf(stderr, "Failed to write to private fifo: %s\n", strerror(errno));
-        exit(1);
-    }
-
-    regist(message->i,message->t,message->pid,message->tid,message->res,"TSKDN");
     pthread_exit(NULL);
 }
 
@@ -88,13 +94,14 @@ void createThreads() {
 
     msg* message;
     // Producer threads (read message and create thread)
+    timeout=false;
     while((int) (now - start) < info.nsecs) {
         
         message = (msg*) malloc(sizeof(msg));
         
-        if (read(publicFifoDesc, message, sizeof(msg)) == -1) {
-            fprintf(stderr, "Error reading from public fifo: %s\n", strerror(errno));
-            exit(1);
+        while(read(publicFifoDesc, message, sizeof(msg)) == 0) {
+            //fprintf(stderr, "Error reading from public fifo: %s\n", strerror(errno));
+            //exit(1);
         }
         if (pthread_create(&id, NULL, producerHandler, message)) {
             fprintf(stderr, "Error creating thread:%s\n", strerror(errno));
@@ -103,11 +110,28 @@ void createThreads() {
         push(id);
         time(&now);
     }
-
-    if (read(publicFifoDesc, message, sizeof(msg)) != 0) {
+    timeout=true;
+    if (read(publicFifoDesc, message, sizeof(msg)) == -1) {
         fprintf(stderr, "Server: Error in %s:%s\n", __func__, strerror(errno));
         exit(1);
     }
+
+    char privateFifoName[200];
+    snprintf(privateFifoName, sizeof(privateFifoName), "/tmp/%d.%ld", message->pid, message->tid);
+    
+    int privateFifoDesc;
+
+    while((privateFifoDesc = open(privateFifoName, O_WRONLY)) < 0) {
+        //fprintf(stderr, "Failed to open private FIFO: %s\n", strerror(errno));
+    }
+    message->pid=getpid();
+    message->tid=pthread_self();
+    
+    if (write(privateFifoDesc,message,sizeof(msg)) < 0) {
+        fprintf(stderr, "Failed to write to private fifo: %s\n", strerror(errno));
+        exit(1);
+    }
+
     regist(message->i,message->t,message->pid,message->tid,message->res,"2LATE");
     // Wait for all threads to finish
     while(!isEmpty()){
