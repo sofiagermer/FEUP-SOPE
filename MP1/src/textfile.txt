@@ -1,0 +1,47 @@
+175.130844 ; 51302 ; FILE_MODF ; dir30+ : 0555 : 0777
+175.616026 ; 51302 ; PROC_CREAT ; dir30+/mainDir ,
+176.470757 ; 51302 ; PROC_CREAT ; dir30+/DIRDIR ,
+177.150488 ; 51304 ; PROC_CREAT ; dir30+/mainDir ,
+178.115845 ; 51305 ; PROC_CREAT ; dir30+/DIRDIR ,
+182.414055 ; 51304 ; FILE_MODF ; dir30+/mainDir : 0775 : 0777
+182.806969 ; 51304 ; PROC_CREAT ; dir30+/mainDir/OtherDir ,
+183.389187 ; 51305 ; FILE_MODF ; dir30+/DIRDIR : 0775 : 0777
+183.884144 ; 51305 ; FILE_MODF ; dir30+/DIRDIR/ffff_ffffffff.....fff : 0775 : 0777
+183.920145 ; 51304 ; PROC_CREAT ; dir30+/mainDir/GoingDeep ,
+184.149742 ; 51305 ; FILE_MODF ; dir30+/DIRDIR/__________ : 0775 : 0777
+184.387684 ; 51305 ; FILE_MODF ; dir30+/DIRDIR/+._- : 0775 : 0777
+184.444427 ; 51306 ; PROC_CREAT ; dir30+/mainDir/OtherDir ,
+184.570551 ; 51305 ; PROC_EXIT ; 0
+185.620546 ; 51307 ; PROC_CREAT ; dir30+/mainDir/GoingDeep ,
+189.907312 ; 51306 ; FILE_MODF ; dir30+/mainDir/OtherDir : 0775 : 0777
+190.370560 ; 51306 ; FILE_MODF ; dir30+/mainDir/OtherDir/FILE0123 : 0775 : 0777
+190.615892 ; 51306 ; FILE_MODF ; dir30+/mainDir/OtherDir/çççç : 0775 : 0777
+190.842390 ; 51306 ; FILE_MODF ; dir30+/mainDir/OtherDir/FILE01234 : 0775 : 0777
+191.060066 ; 51306 ; FILE_MODF ; dir30+/mainDir/OtherDir/q : 0775 : 0777
+191.075802 ; 51307 ; FILE_MODF ; dir30+/mainDir/GoingDeep : 0775 : 0777
+191.236258 ; 51306 ; PROC_EXIT ; 0
+191.621304 ; 51307 ; FILE_MODF ; dir30+/mainDir/GoingDeep/.Text_ : 0775 : 0777
+191.882610 ; 51307 ; FILE_MODF ; dir30+/mainDir/GoingDeep/FILE065 : 0775 : 0777
+192.109823 ; 51307 ; FILE_MODF ; dir30+/mainDir/GoingDeep/---Subtract : 0775 : 0777
+192.354202 ; 51307 ; PROC_CREAT ; dir30+/mainDir/GoingDeep/DirDeep ,
+193.399668 ; 51307 ; FILE_MODF ; dir30+/mainDir/GoingDeep/FILE065434 : 0775 : 0777
+193.703890 ; 51307 ; FILE_MODF ; dir30+/mainDir/GoingDeep/FILE00. : 0775 : 0777
+193.756580 ; 51308 ; PROC_CREAT ; dir30+/mainDir/GoingDeep/DirDeep ,
+193.933249 ; 51307 ; FILE_MODF ; dir30+/mainDir/GoingDeep/+++ADD : 0775 : 0777
+194.147348 ; 51307 ; FILE_MODF ; dir30+/mainDir/GoingDeep/FILE002 : 0717 : 0777
+194.365263 ; 51307 ; FILE_MODF ; dir30+/mainDir/GoingDeep/FILE001 : 0775 : 0777
+194.648981 ; 51307 ; FILE_MODF ; dir30+/mainDir/GoingDeep/+.+ : 0775 : 0777
+199.106216 ; 51308 ; FILE_MODF ; dir30+/mainDir/GoingDeep/DirDeep : 0775 : 0777
+199.603319 ; 51308 ; FILE_MODF ; dir30+/mainDir/GoingDeep/DirDeep/File2 : 0775 : 0777
+199.856520 ; 51308 ; FILE_MODF ; dir30+/mainDir/GoingDeep/DirDeep/File_6 : 0775 : 0777
+200.088024 ; 51308 ; FILE_MODF ; dir30+/mainDir/GoingDeep/DirDeep/+File : 0775 : 0777
+200.316191 ; 51308 ; FILE_MODF ; dir30+/mainDir/GoingDeep/DirDeep/File5 : 0775 : 0777
+200.547934 ; 51308 ; FILE_MODF ; dir30+/mainDir/GoingDeep/DirDeep/File3 : 0775 : 0777
+200.783014 ; 51308 ; FILE_MODF ; dir30+/mainDir/GoingDeep/DirDeep/+_-.File : 0775 : 0777
+201.011658 ; 51308 ; FILE_MODF ; dir30+/mainDir/GoingDeep/DirDeep/File1 : 0775 : 0777
+201.236725 ; 51308 ; FILE_MODF ; dir30+/mainDir/GoingDeep/DirDeep/File : 0775 : 0777
+201.462507 ; 51308 ; FILE_MODF ; dir30+/mainDir/GoingDeep/DirDeep/File4 : 0775 : 0777
+201.635838 ; 51308 ; PROC_EXIT ; 0
+203.006506 ; 51307 ; PROC_EXIT ; 0
+204.641581 ; 51304 ; PROC_EXIT ; 0
+206.227779 ; 51302 ; PROC_EXIT ; 0
